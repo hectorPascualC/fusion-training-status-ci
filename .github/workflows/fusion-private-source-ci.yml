@@ -6,7 +6,7 @@ name: Fusion engineering (private ephemeral checkout)
 # 2026-10-18 post-merge regression: audited phase05 7-day history + visual polish.
 on:
   push:
-    branches: [main]
+    branches: [ci/worker04-numeric-wire-regression]
     paths:
       - '.github/workflows/fusion-private-source-ci.yml'
   workflow_dispatch:
