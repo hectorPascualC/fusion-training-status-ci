@@ -250,9 +250,20 @@ jobs:
           echo "=== Actual simulator diagnostic log ==="
           tail -100 /tmp/fusion-ui-simulator.log || true
           # A separate simulator Error popup can hide the graph even when
-          # the screen pixels changed. That is a FAIL, not visual success.
-          if xdotool search --name '^Error$' >/dev/null 2>&1; then
+          # the screen pixels changed. Run one DIAGNOSTIC unmap to inspect the
+          # actual watch framebuffer behind it, but the gate remains FAIL.
+          POPUP="$(xdotool search --name '^Error$' 2>/dev/null | head -n1 || true)"
+          if [[ -n "${POPUP}" ]]; then
             echo "UI visual audit FAIL: simulator Error popup obscures chart"
+            echo "DIAGNOSTIC ONLY: unmap X11 popup ${POPUP} without changing app source"
+            xdotool windowunmap "${POPUP}" || true
+            sleep 1
+            import -window "${WID}" /tmp/trends-after-popup.png
+            echo "Underlying watch display decoded-pixel hash:"
+            convert /tmp/trends-after-popup.png -depth 8 RGB:- | sha256sum
+            echo FUSION_UNOBSTRUCTED_SCREENSHOT_START
+            base64 /tmp/trends-after-popup.png
+            echo FUSION_UNOBSTRUCTED_SCREENSHOT_END
             exit 1
           fi
           echo "Real Garmin screenshot: ${TARGET}; pixelhash=${STABLE_HASH}"
