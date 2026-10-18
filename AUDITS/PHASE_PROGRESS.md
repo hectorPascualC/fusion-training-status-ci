@@ -66,3 +66,16 @@ The private branch received an additional workflow-only change `8a2d5ca8ec102430
 The migration briefly produced failed runs `39122492581` and `39122898176`–`39123073239`; those exposed an obsolete private-branch requirement and a duplicate YAML document, both corrected. Latest all-jobs-green evidence is `39123149906`.
 
 The public workflow remains scheduled every six hours (subject to GitHub scheduling delay). This schedule runs validations but does **not** autonomously implement future code changes.
+
+## Fusion phase 05 — seven-day real-training Trends final engineering closeout (2026-10-18)
+
+**Source integration:** private `performance/master-audit` at `07ce02d9bb99b631fa3d69b09ee74e2a4dd89de5` passed the [public regression #39126894526](https://github.com/hectorPascualC/fusion-training-status-ci/actions/runs/39126894526), all four jobs (repository/data/security, Android JUnit/lint/release APK, Garmin 9.2.0 engineering PRG, aggregate) **SUCCESS**.
+
+- Versioned transport: old 16-field v1 continues to work with supported old watch clients; v2 uses exactly 17 fields, with bounded `dailyMinutes7` from watch-reported Garmin workouts. Unknown daily coverage is not fabricated as zero when the 64-activity limit is reached.
+- UI: v2 Trends shows seven observed UTC-date bars, compact ACTIVE DAYS label, untruncated FRESH/ST​ALE/EXPIRED footer; v1 cache retains two-period comparison.
+- Test-only real simulator visual: [#39126589596](https://github.com/hectorPascualC/fusion-training-status-ci/actions/runs/39126589596) **SUCCESS**, visually reviewed, no black Error-popup overlay. Original screenshot archived in **private** repository [phase05-trends-v2-SAMPLE-polished.png](https://github.com/hectorPascualC/fusion-training-status/blob/performance/master-audit/docs/screenshots/phase05-trends-v2-SAMPLE-polished.png), with synthetic values only.
+- Release binary measurements: Garmin engineering PRG 27,116 B, unsigned Android release APK 679,383 B.
+- Private Actions: no new automatic performance-branch workflow run; public CI retains the six-hour regression schedule.
+- Remaining **BLOCKED**: physical Fēnix 8 user acceptance (memory, startup, render, battery, navigation), real phone/Health Connect user data and pairing, official Garmin device package and signed V2. Do not claim release readiness or invent real physiological series.
+
+An independent 18-field experimental branch is not merged and must not supersede the validated 17-field contract without a separate audited migration.
