@@ -2,6 +2,7 @@ name: Fusion UI phase 05 v2 isolated audit
 
 # Isolated phase05 v2 regression: verified typed daily-series and shorter labels.
 # The private-read token is never exposed to PR-triggered workflows.
+# Rerun phase05 six-page visual layout after Why wrapping, source a0a75ee73930.
 on:
   push:
     branches: [main]

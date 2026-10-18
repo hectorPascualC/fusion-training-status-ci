@@ -1,4 +1,5 @@
 name: Fusion v2 six-page simulator gallery (synthetic sample)
+# Rerun after adding bounded Why multiline text and Training spacing.
 on:
   push:
     branches: [main]
