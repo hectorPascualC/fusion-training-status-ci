@@ -3,6 +3,7 @@ name: Fusion engineering (private ephemeral checkout)
 # The private-read token is never exposed to PR-triggered workflows.
 # Post-integration six-page visual audit: 2026-10-18 private source 26d310537736.
 # 2026-10-18 post-merge regression: audited phase05 7-day history + visual polish.
+# Worker04 post-integration: exact Garmin numeric wire validation on integrated performance branch.
 on:
   push:
     branches: [main]
