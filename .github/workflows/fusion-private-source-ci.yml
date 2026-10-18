@@ -60,6 +60,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Independent proof that the private performance branch is now CI-gated publicly.
+          python3 scripts/validate_performance_audit.py
           bash scripts/validate_repo.sh
           python3 scripts/scan_repo_secrets.py
           echo "Source commit: $(git rev-parse --short=12 HEAD)"
