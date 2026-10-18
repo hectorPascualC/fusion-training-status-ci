@@ -1,0 +1,236 @@
+name: Fusion private beta cloud packaging (no private Actions)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stable-private-beta
+  cancel-in-progress: false
+
+jobs:
+  package-stable-private-beta:
+    # Hard stop if this repository is ever made public or workflow is dispatched
+    # on a branch other than the explicitly authorized performance branch.
+    if: github.repository == 'hectorPascualC/fusion-training-status-ci' && github.ref == 'refs/heads/main' && github.actor == 'hectorPascualC'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: hectorPascualC/fusion-training-status
+          ref: performance/master-audit
+          token: ${{ secrets.FUSION_PRIVATE_READ_TOKEN }}
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Revalidate the exact private source before packaging
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse --is-inside-work-tree)" = true
+          echo "Private source SHA: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+          python3 scripts/validate_performance_audit.py
+          bash scripts/validate_repo.sh
+          python3 scripts/scan_repo_secrets.py
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Prepare pinned Gradle 8.11.1
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5
+        with:
+          gradle-version: '8.11.1'
+          cache-disabled: true
+      - name: Install Android SDK 36
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" 'platforms;android-36' 'build-tools;35.0.0'
+      - name: Build and audit matching Android Companion, without public artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/build_android.sh
+          python3 scripts/report_android_build_metrics.py
+          bash scripts/validate_apk_security.sh
+          test -s android-companion/build/outputs/apk/debug/android-companion-debug.apk
+      - name: Confirm private repository and authorized beta branch
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.FUSION_PRIVATE_RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "$(gh api "repos/hectorPascualC/fusion-training-status" --jq .visibility)" = "private"
+          test "$(gh api "repos/hectorPascualC/fusion-training-status" --jq .private)" = "true"
+          echo "Stable private beta: private repository and branch verified"
+      - name: Require one Android-configurable signing passphrase
+        env:
+          GARMIN_BETA_KEY_PASSPHRASE: ${{ secrets.GARMIN_BETA_KEY_PASSPHRASE }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if (( ${#GARMIN_BETA_KEY_PASSPHRASE} < 20 )); then
+            echo "::error::Add GARMIN_BETA_KEY_PASSPHRASE (20+ characters) in Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          python3 scripts/garmin_beta_key_vault.py self-test
+
+      - name: Install verified Connect IQ SDK manager
+        shell: bash
+        run: |
+          set -euo pipefail
+          CLI_VERSION="0.8.4"
+          CLI_SHA256="5d57b8f9cfcd02d3b3f48e19d6daca0480e4c6f627926f15d8617ef8a6f57e0b"
+          FILE="/tmp/connect-iq-sdk-manager-cli.tar.gz"
+          curl -fsSLo "${FILE}" "https://github.com/lindell/connect-iq-sdk-manager-cli/releases/download/v${CLI_VERSION}/connect-iq-sdk-manager-cli_${CLI_VERSION}_Linux_x86_64.tar.gz"
+          echo "${CLI_SHA256}  ${FILE}" | sha256sum -c -
+          mkdir -p /tmp/ciq-manager
+          tar -xzf "${FILE}" -C /tmp/ciq-manager
+          CLI_PATH="$(find /tmp/ciq-manager -type f -name connect-iq-sdk-manager -print -quit)"
+          test -n "${CLI_PATH}"
+          sudo install -m 0755 "${CLI_PATH}" /usr/local/bin/connect-iq-sdk-manager
+      - name: Install pinned Garmin SDK 9.2.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED_HASH="CC737BBBA104D7740D5BBCF27D0F6382"
+          ACTUAL_HASH="$(connect-iq-sdk-manager agreement view | awk '/Current Hash:/ {print $3}')"
+          test "${ACTUAL_HASH}" = "${EXPECTED_HASH}"
+          connect-iq-sdk-manager agreement accept --agreement-hash "${EXPECTED_HASH}"
+          connect-iq-sdk-manager sdk set 9.2.0
+          SDK_BIN="$(connect-iq-sdk-manager sdk current-path --bin)"
+          test -x "${SDK_BIN}/monkeyc"
+          echo "${SDK_BIN}" >> "${GITHUB_PATH}"
+      - name: Install pinned mirrored fenix847mm metadata (UNOFFICIAL TEST ONLY)
+        shell: bash
+        run: |
+          set -euo pipefail
+          MIRROR_COMMIT="afdfa3abb4f1628f4cc241f87729560bab0e7a89"
+          MIRROR_DIR="/tmp/ciq-device-mirror"
+          git init -q "${MIRROR_DIR}"
+          git -C "${MIRROR_DIR}" remote add origin "https://github.com/AzzureSkyy/Garmin-Sdk.git"
+          git -C "${MIRROR_DIR}" sparse-checkout init --cone
+          git -C "${MIRROR_DIR}" sparse-checkout set ConnectIQ/Devices/fenix847mm ConnectIQ/Fonts
+          git -C "${MIRROR_DIR}" fetch --depth 1 origin "${MIRROR_COMMIT}"
+          git -C "${MIRROR_DIR}" checkout -q --detach FETCH_HEAD
+          test "$(git -C "${MIRROR_DIR}" rev-parse HEAD)" = "${MIRROR_COMMIT}"
+          DEVICE_SOURCE="${MIRROR_DIR}/ConnectIQ/Devices/fenix847mm"
+          test -s "${DEVICE_SOURCE}/compiler.json"
+          test -s "${DEVICE_SOURCE}/simulator.json"
+          python3 - "${DEVICE_SOURCE}/compiler.json" "${DEVICE_SOURCE}/simulator.json" <<'PY'
+          import json,sys
+          c=json.load(open(sys.argv[1]))
+          s=json.load(open(sys.argv[2]))
+          app=next(x for x in c["appTypes"] if x["type"]=="watchApp")
+          assert c["deviceId"]=="fenix847mm"
+          assert c["resolution"]=={"height":454,"width":454}
+          assert app["memoryLimit"]==786432
+          assert s["graphicsResourcePoolSize"]==3145728
+          print("Pinned test-device metadata verified")
+          PY
+          mkdir -p "$HOME/.Garmin/ConnectIQ/Devices" "$HOME/.Garmin/ConnectIQ/Fonts"
+          cp -R "${DEVICE_SOURCE}" "$HOME/.Garmin/ConnectIQ/Devices/fenix847mm"
+          cp -R "${MIRROR_DIR}/ConnectIQ/Fonts/." "$HOME/.Garmin/ConnectIQ/Fonts/"
+
+      - name: Securely create or recover the SAME developer signing key
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.FUSION_PRIVATE_RELEASE_TOKEN }}
+          GARMIN_BETA_KEY_PASSPHRASE: ${{ secrets.GARMIN_BETA_KEY_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          umask 077
+          KEY_DIR="${RUNNER_TEMP}/fusion-signer"
+          mkdir -p "${KEY_DIR}"
+          TAG="fusion-private-signing-key-v1"
+          ENCRYPTED="fusion-private-signing-key-v1.enc"
+          test "$(gh api "repos/hectorPascualC/fusion-training-status" --jq .private)" = "true"
+          if gh release view -R "hectorPascualC/fusion-training-status" "${TAG}" >/dev/null 2>&1; then
+            gh release download -R "hectorPascualC/fusion-training-status" "${TAG}" \
+              --pattern "${ENCRYPTED}" --dir "${KEY_DIR}"
+            test -s "${KEY_DIR}/${ENCRYPTED}"
+            echo "Stable signer: encrypted material recovered"
+          else
+            openssl genrsa -out "${KEY_DIR}/new-key.pem" 4096 >/dev/null 2>&1
+            openssl pkcs8 -topk8 -inform PEM -outform DER \
+              -in "${KEY_DIR}/new-key.pem" -out "${KEY_DIR}/new-key.der" -nocrypt
+            python3 scripts/garmin_beta_key_vault.py seal \
+              "${KEY_DIR}/new-key.der" "${KEY_DIR}/${ENCRYPTED}"
+            printf '%s\n' \
+              'PRIVATE ENCRYPTED Garmin developer key V1; never distribute unencrypted.' \
+              'AES-256-CBC + scrypt + HMAC, passphrase stored in GitHub Actions secret.' \
+              'Do not remove this release or reset the passphrase without backup.' \
+              > "${KEY_DIR}/notes.txt"
+            gh release create -R "hectorPascualC/fusion-training-status" "${TAG}" \
+              "${KEY_DIR}/${ENCRYPTED}" \
+              --target "$(git rev-parse HEAD)" \
+              --title "PRIVATE encrypted beta signing key (backup)" \
+              --notes-file "${KEY_DIR}/notes.txt" --prerelease
+            echo "Stable signer: created ONCE and saved encrypted in private GitHub release"
+          fi
+          python3 scripts/garmin_beta_key_vault.py unseal \
+            "${KEY_DIR}/${ENCRYPTED}" "${KEY_DIR}/developer_key.der"
+          openssl pkey -inform DER -in "${KEY_DIR}/developer_key.der" -noout
+          openssl pkey -inform DER -in "${KEY_DIR}/developer_key.der" -pubout -outform DER \
+            | sha256sum | awk '{print "Stable signer public-key fingerprint: "$1}'
+          echo "GARMIN_DEVELOPER_KEY=${KEY_DIR}/developer_key.der" >> "${GITHUB_ENV}"
+          rm -f "${KEY_DIR}/new-key.pem" "${KEY_DIR}/new-key.der"
+
+      - name: Compile STABLE signed beta V2 (same key on future runs)
+        shell: bash
+        run: |
+          set -euo pipefail
+          GARMIN_BETA_STABLE=1 scripts/build_garmin_beta.sh
+          test -s build/garmin-beta/FusionTrainingStatus-private-beta.iq
+          sha256sum build/garmin-beta/FusionTrainingStatus-private-beta.iq
+
+      - name: Upload private signed beta V2 for Android download
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.FUSION_PRIVATE_RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/hectorPascualC/fusion-training-status" --jq .private)" = "true"
+          TAG="fusion-signed-beta-$(git rev-parse --short=12 HEAD)"
+          IQ="build/garmin-beta/FusionTrainingStatus-private-beta.iq"
+          APK="android-companion/build/outputs/apk/debug/android-companion-debug.apk"
+          test -s "$IQ" && test -s "$APK"
+          cat > "${RUNNER_TEMP}/notes.txt" <<'NOTES'
+          Fusion Training Status SIGNED private beta V2 + MATCHING ANDROID DEBUG APK, fenix847mm.
+          Beta V2 UUID: f2107e87-abe2-5b29-845a-050d6a3142d9.
+          Same persistent RSA key is reused from encrypted private GitHub backup.
+
+          IMPORTANT: The previous installed beta was signed with a lost one-time
+          key. Create a NEW Garmin Connect IQ developer-only Beta listing for V2;
+          the old listing CANNOT be updated. Future V2 builds can update V2.
+          V2 companion debug APK included here; ephemeral Android debug signing may require uninstall before upgrading.
+
+          The build is engineering/private only with pinned third-party
+          fenix847mm device metadata, NOT official authenticated Garmin files.
+          No public distribution; Garmin dashboard upload may still reject it.
+          NOTES
+          if gh release view -R "hectorPascualC/fusion-training-status" "${TAG}" >/dev/null 2>&1; then
+            test "$(gh release view -R "hectorPascualC/fusion-training-status" "${TAG}" --json isPrerelease --jq .isPrerelease)" = true
+            gh release upload -R "hectorPascualC/fusion-training-status" "${TAG}" \
+              "${IQ}#FusionTrainingStatus-SignedPrivateBeta-V2.iq" \
+              "${APK}#FusionCompanion-Android-Worker04-debug.apk" \
+              "${APK}#FusionCompanion-Android-Worker04-debug.apk" --clobber
+          else
+            gh release create -R "hectorPascualC/fusion-training-status" "${TAG}" \
+              "${IQ}#FusionTrainingStatus-SignedPrivateBeta-V2.iq" \
+              --target "$(git rev-parse HEAD)" --prerelease \
+              --title "PRIVATE signed Fusion beta V2 — $(git rev-parse --short=12 HEAD)" \
+              --notes-file "${RUNNER_TEMP}/notes.txt"
+          fi
+          echo "Private beta file: https://github.com/${GITHUB_REPOSITORY}/releases/tag/${TAG}"
