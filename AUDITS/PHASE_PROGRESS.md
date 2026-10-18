@@ -33,3 +33,20 @@ Do not label live CI or physical Garmin acceptance PASS without successful measu
 - Phase 05 public engineering regression: **PASS LIVE** (Android, Garmin and aggregate all green).
 
 **Not passed or claimed:** official Garmin device-package authentication, production-signed Garmin beta V2, physical watch navigation/heap/battery/latency and final `v1.0.0` release. These continue as separate private acceptance gates.
+
+## Worker 3 resumed audit — 2026-10-18
+
+Two audited feature-branch public runs successfully validated Fusion watch UI/performance and data correctness:
+
+| Stage | Private source | Public run | Source | Android/JUnit/lint/APK | Garmin compiler | Aggregate |
+|---|---|---|---|---|---|---|
+| UI render/unused Garmin snapshot | `d5e3c80a203ce1db394614cc704f8d301d2a147d` | [39121770414](https://github.com/hectorPascualC/fusion-training-status-ci/actions/runs/39121770414) | PASS | PASS | PASS | PASS |
+| Seven UTC calendar-date frequency bound | `9612016ef25a46d09387d4aea760802883d70ccf` | [39121989825](https://github.com/hectorPascualC/fusion-training-status-ci/actions/runs/39121989825) | PASS | PASS | PASS, PRG 26,220 B | PASS |
+
+The second Android run passed the added eight-UTC-date JUnit regression, lint and release APK security; its unsigned release APK was 678,667 bytes. The feature branch was fast-forwarded into private `performance/master-audit` at audit commit `0a33c4cae2c0072e886794af0092184cda127c8a`.
+
+**No private-release/physical PASS:** an engineering PRG built with test device metadata and a throwaway key is not a signed Garmin release; on-watch frame time, memory, battery and actual user Health Connect permission/transport acceptance remain untested.
+
+### Private Actions quota containment
+
+The private branch received an additional workflow-only change `8a2d5ca8ec102430170550573bad05b06f83a54b` to remove automatic private-runner triggers for performance updates and make private Android beta packaging manually dispatched. Public CI checks that policy. This avoids spending the private 2,000-minute allowance on performance-branch pushes. The latest policy-enforcement public run is subject to actual CI confirmation; do not claim PASS until completed.
