@@ -1,12 +1,13 @@
 name: Fusion engineering (private ephemeral checkout)
 
-# The private-read token is never exposed to PR-triggered workflows.
+# Worker04 Trends candidate: isolated trusted public branch, read-only private source checkout.
+# No pull-request trigger or published private source/artifacts.
 # Post-integration six-page visual audit: 2026-10-18 private source 26d310537736.
 # 2026-10-18 post-merge regression: audited phase05 7-day history + visual polish.
 # Worker04 post-integration: exact Garmin numeric wire validation on integrated performance branch.
 on:
   push:
-    branches: [main]
+    branches: [ci/worker04-trends-calendar]
     paths:
       - '.github/workflows/fusion-private-source-ci.yml'
   workflow_dispatch:
@@ -22,7 +23,7 @@ concurrency:
 
 jobs:
   source-audit:
-    if: github.repository == 'hectorPascualC/fusion-training-status-ci' && github.ref == 'refs/heads/main'
+    if: github.repository == 'hectorPascualC/fusion-training-status-ci' && github.ref == 'refs/heads/ci/worker04-trends-calendar'
     outputs:
       source_sha: ${{ steps.provenance.outputs.source_sha }}
     runs-on: ubuntu-24.04
@@ -38,7 +39,7 @@ jobs:
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           repository: hectorPascualC/fusion-training-status
-          ref: performance/master-audit
+          ref: ui/worker04-trends-calendar-consistency
           token: ${{ secrets.FUSION_PRIVATE_READ_TOKEN }}
           persist-credentials: false
           fetch-depth: 1
