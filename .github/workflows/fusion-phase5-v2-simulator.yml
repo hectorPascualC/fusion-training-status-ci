@@ -114,9 +114,9 @@ jobs:
               "acute7Day" => 540,
               "chronic28Day" => 515,
               "loadRatio" => "1.05",
-              "frequency7Day" => 4,
+              "frequency7Day" => 5,
               "dailyMinutes7" => [20, 0, 45, 65, 0, 80, 130],
-              "volumeMinutes7Day" => 327,
+              "volumeMinutes7Day" => 340,
               "previous7DayVolumeMinutes" => 281,
               "why" => "Load near baseline with strong recovery",
               "whyDetail" => "Recovery 72/100 • Ratio 1.05"
