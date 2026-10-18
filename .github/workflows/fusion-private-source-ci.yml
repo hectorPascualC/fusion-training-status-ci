@@ -50,7 +50,6 @@ jobs:
           grep -Fq 'branches: [main, "phase/**", "security/**"]' .github/workflows/ci.yml
           python3 - <<'PY'
           from pathlib import Path
-          import re
           text = Path(".github/workflows/private-android-companion.yml").read_text()
           event_header = text.split("permissions:", 1)[0]
           assert "workflow_dispatch:" in event_header
@@ -58,7 +57,10 @@ jobs:
           # request the otherwise private-branch-only Android beta workflow.
           trigger = event_header.split("  push:", 1)[1].split("  workflow_dispatch:", 1)[0]
           assert 'branches: ["performance/master-audit"]' in trigger
-          requested_paths = re.findall(r'^\\s*-\\s+"([^"]+)"\\s*
+          expected = '      - "docs/PRIVATE_ANDROID_COMPANION_BUILD_REQUEST.md"'
+          assert expected in trigger
+          assert trigger.count('      - "') == 1, "Private beta has additional push-trigger paths"
+          print("Private Actions-minute containment: PASS (marker-only beta trigger)")
           PY
       - name: Validate project, security, data, UI and performance contracts
         shell: bash
