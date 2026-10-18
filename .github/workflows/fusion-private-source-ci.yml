@@ -2,6 +2,10 @@ name: Fusion engineering (private ephemeral checkout)
 
 # The private-read token is never exposed to PR-triggered workflows.
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fusion-private-source-ci.yml'
   workflow_dispatch:
   schedule:
     - cron: '17 */6 * * *'
