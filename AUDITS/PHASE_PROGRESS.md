@@ -79,3 +79,16 @@ The public workflow remains scheduled every six hours (subject to GitHub schedul
 - Remaining **BLOCKED**: physical Fēnix 8 user acceptance (memory, startup, render, battery, navigation), real phone/Health Connect user data and pairing, official Garmin device package and signed V2. Do not claim release readiness or invent real physiological series.
 
 An independent 18-field experimental branch is not merged and must not supersede the validated 17-field contract without a separate audited migration.
+
+
+## Worker 04 — Exact Garmin integer-decoding regression (2026-10-18)
+
+- **Scope:** Numeric trust boundary Android Garmin request decoder only. No changes to six watch pages or validated v1 16-field / v2 17-field response.
+- **Finding:** Fractional timestamps/workout durations were narrowed with `toLong()`/`toInt()`, risking silent truncation of workout-minute history; existing version guard was already present but is now unified with the strict decoder.
+- **Fix:** Android `BigDecimal.longValueExact()` for version, request timestamp, activity timestamp and duration, followed by existing age/range bounds. Reject nonfinite, fractional and overflowing values. Preserve integral numeric representations for legacy compatibility.
+- **Tests:** `GarminNumericWireValidationTest` adds six JUnit regression scenarios; security source-contract validator updated.
+- **Private audited candidate source:** `30ef5641c37c130f5586b94eec7e7ca05d6fde08`.
+- **Public isolated candidate run:** [39145991271](https://github.com/hectorPascualC/fusion-training-status-ci/actions/runs/39145991271), `source-audit`, `android`, `garmin-engineering`, `audit-result` all **SUCCESS**. Engineering candidate: **PASS_ENGINEERING_DEVICE_PENDING**.
+- **Guarded private performance integration:** fast-forward to `001718bd58fc46e6d3da7913690a7615a6f8e40f`; private `main` remains untouched.
+- **Post-integration public run:** [39146608283](https://github.com/hectorPascualC/fusion-training-status-ci/actions/runs/39146608283), source audit **PASS** on integrated source `001718bd58fc`; Android, Garmin and aggregate **PENDING** when this record was written.
+- **Hardware/release:** paired physical Fēnix 8, genuine Health Connect data, runtime heap/latency/battery, official signed IQ and v1.0.0 remain **BLOCKED** until directly observed; CI does not substitute device acceptance.
