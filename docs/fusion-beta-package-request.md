@@ -7,3 +7,10 @@
 - Preserve the persistent encrypted signing key in the PRIVATE repository.
 - If any credential or compile check fails, do not publish an unverified release.
 - This request does not authorize a public Connect IQ release, external publication of sources, paid runners, or a production-ready declaration.
+
+## 2026-10-18 — Android Health Connect permissions hotfix
+
+Trigger exactly one updated private beta+APK package build on the public cloud runner, consuming **no private GitHub Actions minutes**.
+Private source includes PermissionsRationaleActivity, Android 14+ VIEW_PERMISSION_USAGE alias, visible permission result/errors and diagnostics-preserving UI.
+Verify source validators, Android tests/lint/build, merged-manifest permission gate, IQ packaging and final private Release assets. Garmin watch code/signing key/UUID remain stable.
+See private `docs/WORKER04_HEALTH_CONNECT_PERMISSION_FIX.md`.
