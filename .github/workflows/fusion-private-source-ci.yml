@@ -168,7 +168,9 @@ jobs:
           SRC: ${{ needs.source-audit.result }}
           ANDROID: ${{ needs.android.result }}
           GARMIN: ${{ needs.garmin-engineering.result }}
+          SOURCE_SHA: ${{ needs.source-audit.outputs.source_sha }}
         run: |
+          echo "Audited private source SHA: $SOURCE_SHA" >> "$GITHUB_STEP_SUMMARY"
           echo "Static: $SRC | Android: $ANDROID | Garmin: $GARMIN" >> "$GITHUB_STEP_SUMMARY"
           test "$SRC" = success && test "$ANDROID" = success && test "$GARMIN" = success
           echo 'PASS ENGINEERING; official Garmin package and real Fenix 8 runtime still BLOCKED.' >> "$GITHUB_STEP_SUMMARY"
