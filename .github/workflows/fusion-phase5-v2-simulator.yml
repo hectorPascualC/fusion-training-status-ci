@@ -243,4 +243,9 @@ jobs:
           fi
           echo "Real Garmin screenshot: ${TARGET}; pixelhash=${STABLE_HASH}"
           sha256sum "${TARGET}"
+          # Only a deliberately synthetic TEST screenshot is encoded into
+          # public CI logs. No Garmin/Health Connect personal data are present.
+          echo FUSION_TEST_SCREENSHOT_START
+          base64 "${TARGET}"
+          echo FUSION_TEST_SCREENSHOT_END
 
