@@ -12,8 +12,7 @@ concurrency:
 
 jobs:
   package-stable-private-beta:
-    # Hard stop if this repository is ever made public or workflow is dispatched
-    # on a branch other than the explicitly authorized performance branch.
+    # Private binary delivery is restricted to the owner's manual invocation on public main.
     if: github.repository == 'hectorPascualC/fusion-training-status-ci' && github.ref == 'refs/heads/main' && github.actor == 'hectorPascualC'
     runs-on: ubuntu-24.04
     timeout-minutes: 55
@@ -21,7 +20,7 @@ jobs:
       ANDROID_HOME: /usr/local/lib/android/sdk
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
     permissions:
-      contents: write
+      contents: read
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -224,13 +223,13 @@ jobs:
             test "$(gh release view -R "hectorPascualC/fusion-training-status" "${TAG}" --json isPrerelease --jq .isPrerelease)" = true
             gh release upload -R "hectorPascualC/fusion-training-status" "${TAG}" \
               "${IQ}#FusionTrainingStatus-SignedPrivateBeta-V2.iq" \
-              "${APK}#FusionCompanion-Android-Worker04-debug.apk" \
               "${APK}#FusionCompanion-Android-Worker04-debug.apk" --clobber
           else
             gh release create -R "hectorPascualC/fusion-training-status" "${TAG}" \
               "${IQ}#FusionTrainingStatus-SignedPrivateBeta-V2.iq" \
+              "${APK}#FusionCompanion-Android-Worker04-debug.apk" \
               --target "$(git rev-parse HEAD)" --prerelease \
               --title "PRIVATE signed Fusion beta V2 — $(git rev-parse --short=12 HEAD)" \
               --notes-file "${RUNNER_TEMP}/notes.txt"
           fi
-          echo "Private beta file: https://github.com/${GITHUB_REPOSITORY}/releases/tag/${TAG}"
+          echo "Private beta file: https://github.com/hectorPascualC/fusion-training-status/releases/tag/${TAG}"
