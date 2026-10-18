@@ -92,3 +92,12 @@ An independent 18-field experimental branch is not merged and must not supersede
 - **Guarded private performance integration:** fast-forward to `001718bd58fc46e6d3da7913690a7615a6f8e40f`; private `main` remains untouched.
 - **Post-integration public run:** [39146608283](https://github.com/hectorPascualC/fusion-training-status-ci/actions/runs/39146608283), audited private source `001718bd58fc46e6d3da7913690a7615a6f8e40f`; **all four jobs SUCCESS** (source/security, Android JUnit/lint/release APK, Garmin engineering PRG, aggregate). Release APK **679,599 B**, DEX **625,336 B**, Garmin engineering PRG **27,356 B**. Phase **PASS_ENGINEERING_DEVICE_PENDING**.
 - **Hardware/release:** paired physical Fēnix 8, genuine Health Connect data, runtime heap/latency/battery, official signed IQ and v1.0.0 remain **BLOCKED** until directly observed; CI does not substitute device acceptance.
+
+
+## Worker 04 — CI aggregate false-positive finding (2026-10-18)
+
+- **Discovery:** Isolated Trends candidate [39147070508](https://github.com/hectorPascualC/fusion-training-status-ci/actions/runs/39147070508) showed Android JUnit **FAIL** (51 tests, 1 failure), while aggregate `audit-result` job erroneously returned success. Whole workflow conclusion = **FAIL**, and no private source was merged on that result.
+- **Root cause:** Bash `-e` does not exit on intermediate failed commands within an `&&` list when a succeeding summary `echo` follows. The three plain `test` expressions did not constitute a fail-closed final job.
+- **Fix on public main:** commit `544d555960f3b5f565c8cc72fad2aace26cb262d` replaces the chain with `all_pass` and an explicit `if ! all_pass; then exit 1` error path, plus negative-path self-tests for Android/source/Garmin dependency failures.
+- **Independent regression:** corrected candidate branch `ci/worker04-trends-calendar` also carries this hardened gate, run [39147589085](https://github.com/hectorPascualC/fusion-training-status-ci/actions/runs/39147589085). Integrated public main gate verification run [39147748707](https://github.com/hectorPascualC/fusion-training-status-ci/actions/runs/39147748707) queued when logged. Final PASS only after job logs confirm self-test and aggregate success.
+- **Physical:** none of the engineering runs claim paired hardware or signed IQ acceptance.
