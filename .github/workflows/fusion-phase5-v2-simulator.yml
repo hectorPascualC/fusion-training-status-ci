@@ -122,6 +122,10 @@ jobs:
               "whyDetail" => "Recovery 72/100 • Ratio 1.05"
           };"""
           assert sample.count('" => ') == 17, "Sample must be 17 real protocol fields"
+          # Screenshot-only: no phone is paired in headless simulator.
+          # Do not invoke Comm.transmit() 150ms after first render here.
+          assert source.count("_initialSyncRequired = true;") == 1
+          source = source.replace("_initialSyncRequired = true;", "_initialSyncRequired = false;", 1)
           bridge.write_text(source.replace(anchor, sample, 1), encoding="utf-8")
           PY
           GARMIN_DEVELOPER_KEY="${RUNNER_TEMP}/ui-preview-key.der" \
