@@ -1,4 +1,5 @@
 name: Fusion UI phase 05 v2 isolated audit
+# Revalidate whole-word Why wrapping at private source 68ae3f50.
 
 # Isolated phase05 v2 regression: verified typed daily-series and shorter labels.
 # The private-read token is never exposed to PR-triggered workflows.

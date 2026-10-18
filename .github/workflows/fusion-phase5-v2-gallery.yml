@@ -1,4 +1,5 @@
 name: Fusion v2 six-page simulator gallery (synthetic sample)
+# Revalidate whole-word Why wrapping at private source 68ae3f50.
 # Rerun after adding bounded Why multiline text and Training spacing.
 on:
   push:
