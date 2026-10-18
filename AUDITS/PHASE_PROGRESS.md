@@ -50,3 +50,19 @@ The second Android run passed the added eight-UTC-date JUnit regression, lint an
 ### Private Actions quota containment
 
 The private branch received an additional workflow-only change `8a2d5ca8ec102430170550573bad05b06f83a54b` to remove automatic private-runner triggers for performance updates and make private Android beta packaging manually dispatched. Public CI checks that policy. This avoids spending the private 2,000-minute allowance on performance-branch pushes. The latest policy-enforcement public run is subject to actual CI confirmation; do not claim PASS until completed.
+
+## Worker 3 / performance branch — Final phase audit (2026-10-18)
+
+**Final run:** https://github.com/hectorPascualC/fusion-training-status-ci/actions/runs/39123149906  
+**Private source validated:** `hectorPascualC/fusion-training-status@44d15b919a818ca977109a92ecc8a8765ef75387`.
+
+- Phase 01 — Trust boundary: **PASS**; original repo private, public Git repo has only CI code and audit docs, private source checked out ephemerally.
+- Phase 02 — Watch UI/performance: **PASS_ENGINEERING**; unused Garmin profile snapshot reads removed; numeric cells width-bounded; Fēnix 8 Monkey C engineering PRG 26,220 bytes.
+- Phase 03 — Data correctness: **PASS_ENGINEERING**; eight-UTC-calendar-dates regression covered by JUnit; `frequency7Day` is constrained to 0–7 while rolling training volume remains unchanged.
+- Phase 04 — Android security/performance: **PASS_ENGINEERING**; unit tests, lint, release APK (678,667 bytes), DEX (624,408 bytes) and binary security successful.
+- Phase 05 — GitHub Actions quota protection: **PASS**. The private performance branch has no automatic private CI push runner. Private Android beta packaging requires a deliberately created/modified request marker (`docs/PRIVATE_ANDROID_COMPANION_BUILD_REQUEST.md`) or manual dispatch when available. Actual private runs stopped after the old pre-migration push; the public run successfully validated the migrated audit contract.
+- Phase 06 — Official Fēnix 8/Health Connect physical acceptance and signed V2: **BLOCKED**; not simulated as PASS.
+
+The migration briefly produced failed runs `39122492581` and `39122898176`–`39123073239`; those exposed an obsolete private-branch requirement and a duplicate YAML document, both corrected. Latest all-jobs-green evidence is `39123149906`.
+
+The public workflow remains scheduled every six hours (subject to GitHub scheduling delay). This schedule runs validations but does **not** autonomously implement future code changes.
