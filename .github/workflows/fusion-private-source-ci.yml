@@ -16,6 +16,8 @@ concurrency:
 jobs:
   source-audit:
     if: github.repository == 'hectorPascualC/fusion-training-status-ci' && github.ref == 'refs/heads/main'
+    outputs:
+      source_sha: ${{ steps.provenance.outputs.source_sha }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -33,6 +35,10 @@ jobs:
           token: ${{ secrets.FUSION_PRIVATE_READ_TOKEN }}
           persist-credentials: false
           fetch-depth: 1
+      - id: provenance
+        name: Record immutable private commit for all jobs
+        shell: bash
+        run: echo "source_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - name: Validate project, security, data, UI and performance contracts
         shell: bash
         run: |
@@ -52,7 +58,7 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           repository: hectorPascualC/fusion-training-status
-          ref: performance/master-audit
+          ref: ${{ needs.source-audit.outputs.source_sha }}
           token: ${{ secrets.FUSION_PRIVATE_READ_TOKEN }}
           persist-credentials: false
           fetch-depth: 1
@@ -89,7 +95,7 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           repository: hectorPascualC/fusion-training-status
-          ref: performance/master-audit
+          ref: ${{ needs.source-audit.outputs.source_sha }}
           token: ${{ secrets.FUSION_PRIVATE_READ_TOKEN }}
           persist-credentials: false
           fetch-depth: 1
