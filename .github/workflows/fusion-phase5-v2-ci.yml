@@ -34,7 +34,7 @@ jobs:
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           repository: hectorPascualC/fusion-training-status
-          ref: ui/phase5-v2-visual-polish
+          ref: ui/phase05-six-page-layout
           token: ${{ secrets.FUSION_PRIVATE_READ_TOKEN }}
           persist-credentials: false
           fetch-depth: 1
