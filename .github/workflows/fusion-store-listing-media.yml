@@ -1,0 +1,73 @@
+name: Fusion Garmin beta listing media (private delivery)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fusion-store-listing-media.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-store-media:
+    if: github.repository == 'hectorPascualC/fusion-training-status-ci' && github.ref == 'refs/heads/main' && github.actor == 'hectorPascualC'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Public media tooling checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Ephemeral private source screenshots checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: hectorPascualC/fusion-training-status
+          ref: performance/master-audit
+          token: ${{ secrets.FUSION_PRIVATE_READ_TOKEN }}
+          path: private-src
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Check private target for release write without disclosing tokens
+        env:
+          GH_TOKEN: ${{ secrets.FUSION_PRIVATE_RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          test "$(gh api 'repos/hectorPascualC/fusion-training-status' --jq .private)" = true
+      - name: Install image resize tool
+        run: |
+          python3 -m pip install --disable-pip-version-check 'Pillow==11.3.0'
+      - name: Create Garmin media from REAL simulator SAMPLE captures
+        working-directory: private-src
+        run: |
+          set -euo pipefail
+          python3 ../scripts/prepare_fusion_store_media.py
+          test -s build/store-listing-assets/Fusion-cover-500x500.png
+          test "$(find build/store-listing-assets -maxdepth 1 -type f | wc -l)" -eq 8
+      - name: Upload all media only to PRIVATE GitHub Release
+        working-directory: private-src
+        env:
+          GH_TOKEN: ${{ secrets.FUSION_PRIVATE_RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          test "$(gh api 'repos/hectorPascualC/fusion-training-status' --jq .private)" = true
+          SOURCE_SHA="$(git rev-parse HEAD)"
+          TAG="fusion-store-assets-${SOURCE_SHA:0:12}"
+          printf '%s\n' \
+            'Connect IQ listing assets: original Fusion-branded cover and six compressed' \
+            'SAMPLE simulator screenshots (not personal data or measured device values).' \
+            'Screenshots were captured from the native Garmin simulator using a synthetic fixture.' \
+            'For private beta listing. Do not present sample values as user training history.' \
+            'Cover 500x500 PNG < 300 KB. Screenshots JPG < 150 KB each.' \
+            > /tmp/fusion-media-notes.txt
+          if gh release view -R hectorPascualC/fusion-training-status "$TAG" >/dev/null 2>&1; then
+            gh release upload -R hectorPascualC/fusion-training-status "$TAG" \
+              build/store-listing-assets/* --clobber
+          else
+            gh release create -R hectorPascualC/fusion-training-status "$TAG" \
+              build/store-listing-assets/* --target "$SOURCE_SHA" --prerelease \
+              --title "PRIVATE Garmin beta store images — ${SOURCE_SHA:0:12}" \
+              --notes-file /tmp/fusion-media-notes.txt
+          fi
+          echo "PRIVATE listing media: https://github.com/hectorPascualC/fusion-training-status/releases/tag/$TAG" >> "$GITHUB_STEP_SUMMARY"
