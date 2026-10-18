@@ -1,5 +1,6 @@
 name: Fusion UI phase 05 v2 isolated audit
 
+# Isolated phase05 v2 regression retest: adjusted deterministic tests for 17-field v2.
 # The private-read token is never exposed to PR-triggered workflows.
 on:
   push:
