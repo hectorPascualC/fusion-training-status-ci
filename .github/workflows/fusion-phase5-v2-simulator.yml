@@ -1,0 +1,246 @@
+name: Fusion v2 Trends real simulator pixels (synthetic sample)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fusion-phase5-v2-simulator.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: fusion-phase5-v2-simulator
+  cancel-in-progress: false
+jobs:
+  trends-pixel-smoke:
+    if: github.repository == 'hectorPascualC/fusion-training-status-ci' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: hectorPascualC/fusion-training-status
+          ref: ui/phase5-real-seven-day-history
+          token: ${{ secrets.FUSION_PRIVATE_READ_TOKEN }}
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install headless simulator dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            xvfb x11-utils xdotool imagemagick libwebkit2gtk-4.0-37 libgtk-3-0 \
+            libsoup2.4-1 libgl1-mesa-dri libegl1-mesa
+      - name: Install pinned Connect IQ SDK 9.2.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          CLI_VERSION="0.8.4"
+          CLI_SHA256="5d57b8f9cfcd02d3b3f48e19d6daca0480e4c6f627926f15d8617ef8a6f57e0b"
+          ARCHIVE="connect-iq-sdk-manager-cli_${CLI_VERSION}_Linux_x86_64.tar.gz"
+          curl -fsSLo "/tmp/${ARCHIVE}" "https://github.com/lindell/connect-iq-sdk-manager-cli/releases/download/v${CLI_VERSION}/${ARCHIVE}"
+          echo "${CLI_SHA256}  /tmp/${ARCHIVE}" | sha256sum -c -
+          tar -xzf "/tmp/${ARCHIVE}" -C /tmp
+          sudo install -m 0755 /tmp/connect-iq-sdk-manager /usr/local/bin/connect-iq-sdk-manager
+          connect-iq-sdk-manager agreement view | tee /tmp/ciq-sim-agreement.txt
+          CURRENT_HASH="$(awk '/Current Hash:/ {print $3}' /tmp/ciq-sim-agreement.txt)"
+          test "${CURRENT_HASH}" = "CC737BBBA104D7740D5BBCF27D0F6382"
+          connect-iq-sdk-manager agreement accept --agreement-hash "CC737BBBA104D7740D5BBCF27D0F6382"
+          connect-iq-sdk-manager sdk set 9.2.0
+          SDK_BIN="$(connect-iq-sdk-manager sdk current-path --bin)"
+          echo "${SDK_BIN}" >> "$GITHUB_PATH"
+          echo "CIQ_SDK_BIN=${SDK_BIN}" >> "$GITHUB_ENV"
+          echo "CIQ_SDK_HOME=$(dirname "${SDK_BIN}")" >> "$GITHUB_ENV"
+      - name: Install pinned mirror device metadata and fonts
+        shell: bash
+        run: |
+          set -euo pipefail
+          MIRROR_COMMIT="afdfa3abb4f1628f4cc241f87729560bab0e7a89"
+          MIRROR_REPO="https://github.com/AzzureSkyy/Garmin-Sdk.git"
+          MIRROR_DIR="/tmp/garmin-sdk-mirror"
+          git init -q "${MIRROR_DIR}"
+          git -C "${MIRROR_DIR}" remote add origin "${MIRROR_REPO}"
+          git -C "${MIRROR_DIR}" sparse-checkout init --cone
+          git -C "${MIRROR_DIR}" sparse-checkout set ConnectIQ/Devices/fenix847mm ConnectIQ/Fonts
+          git -C "${MIRROR_DIR}" fetch --depth 1 origin "${MIRROR_COMMIT}"
+          git -C "${MIRROR_DIR}" checkout -q --detach FETCH_HEAD
+          test "$(git -C "${MIRROR_DIR}" rev-parse HEAD)" = "${MIRROR_COMMIT}"
+          mkdir -p "$HOME/.Garmin/ConnectIQ/Devices" "$HOME/.Garmin/ConnectIQ/Fonts"
+          rm -rf "$HOME/.Garmin/ConnectIQ/Devices/fenix847mm"
+          cp -R "${MIRROR_DIR}/ConnectIQ/Devices/fenix847mm" "$HOME/.Garmin/ConnectIQ/Devices/fenix847mm"
+          cp -R "${MIRROR_DIR}/ConnectIQ/Fonts/." "$HOME/.Garmin/ConnectIQ/Fonts/"
+
+
+      - name: Compile real Trends UI with synthetic schema-v2 seven-day history
+        shell: bash
+        env:
+          PAGE: '3'
+        run: |
+          set -euo pipefail
+          umask 077
+          openssl genrsa -out "${RUNNER_TEMP}/ui-preview-key.pem" 4096 >/dev/null 2>&1
+          openssl pkcs8 -topk8 -inform PEM -outform DER \
+            -in "${RUNNER_TEMP}/ui-preview-key.pem" \
+            -out "${RUNNER_TEMP}/ui-preview-key.der" -nocrypt
+          python3 - "${PAGE}" <<'PY'
+          from pathlib import Path
+          import sys
+          page = int(sys.argv[1])
+          assert 0 <= page <= 5
+          path = Path("garmin/source/FusionStatusView.mc")
+          original = path.read_text(encoding="utf-8")
+          anchor = "_page = 0;"
+          assert original.count(anchor) == 1, "Unexpected initial-page binding"
+          path.write_text(original.replace(anchor, f"_page = {page};", 1), encoding="utf-8")
+          # Runner-only test fixture: the production watch and phone source files
+          # in git are NEVER changed, and no Health Connect data is read.
+          bridge = Path("garmin/source/FusionPhoneBridge.mc")
+          source = bridge.read_text(encoding="utf-8")
+          anchor = "_latestPayload = FusionStore.read();"
+          assert source.count(anchor) == 1, "Unexpected watch cache initializer"
+          sample = """_latestPayload = {
+              "schemaVersion" => 2,
+              "payloadId" => "sample-preview-not-synced",
+              "requestId" => "sample-preview",
+              "generatedAt" => Time.now().value(),
+              "freshness" => "FRESH",
+              "status" => "PRODUCTIVE",
+              "recoveryScore" => 72,
+              "confidence" => "HIGH",
+              "acute7Day" => 540,
+              "chronic28Day" => 515,
+              "loadRatio" => "1.05",
+              "frequency7Day" => 4,
+              "dailyMinutes7" => [20, 0, 45, 65, 0, 80, 130],
+              "volumeMinutes7Day" => 327,
+              "previous7DayVolumeMinutes" => 281,
+              "why" => "Load near baseline with strong recovery",
+              "whyDetail" => "Recovery 72/100 • Ratio 1.05"
+          };"""
+          assert sample.count('" => ') == 17, "Sample must be 17 real protocol fields"
+          bridge.write_text(source.replace(anchor, sample, 1), encoding="utf-8")
+          PY
+          GARMIN_DEVELOPER_KEY="${RUNNER_TEMP}/ui-preview-key.der" \
+            GARMIN_DEVICE=fenix847mm GARMIN_BUILD_STATS=0 \
+            scripts/build_garmin.sh
+          test -s build/garmin/FusionTrainingStatus.prg
+          echo "Compiled actual Monkey C page ${PAGE} with explicit synthetic watch-cache test fixture"
+
+      - name: Capture actual watch app pixels (single simulator process)
+        shell: bash
+        env:
+          PAGE: '3'
+          PAGE_LABEL: trends
+        run: |
+          set -euo pipefail
+          mkdir -p ui-screenshots
+          Xvfb :99 -screen 0 1400x1100x24 -ac >/tmp/fusion-ui-xvfb.log 2>&1 &
+          XVFB_PID=$!
+          export DISPLAY=:99
+          SIM_PID=""
+          MONKEYDO_PID=""
+          cleanup() {
+            set +e
+            [[ -n "${MONKEYDO_PID}" ]] && kill "${MONKEYDO_PID}" 2>/dev/null
+            [[ -n "${SIM_PID}" ]] && kill "${SIM_PID}" 2>/dev/null
+            kill "${XVFB_PID}" 2>/dev/null
+            wait 2>/dev/null
+          }
+          trap cleanup EXIT
+          for attempt in $(seq 1 50); do
+            xdpyinfo >/dev/null 2>&1 && break
+            sleep 0.2
+          done
+          xdpyinfo >/dev/null
+          export LIBGL_ALWAYS_SOFTWARE=1
+          export GALLIUM_DRIVER=llvmpipe
+          export LD_LIBRARY_PATH="${CIQ_SDK_BIN}:${LD_LIBRARY_PATH:-}"
+
+          "${CIQ_SDK_BIN}/simulator" > /tmp/fusion-ui-simulator.log 2>&1 &
+          SIM_PID=$!
+          READY_PORT=false
+          for attempt in $(seq 1 65); do
+            kill -0 "${SIM_PID}" 2>/dev/null || break
+            if (echo >/dev/tcp/127.0.0.1/1234) >/dev/null 2>&1; then READY_PORT=true; break; fi
+            sleep 0.5
+          done
+          if [[ "${READY_PORT}" != true ]]; then
+            echo "Simulator TCP port 1234 did not become ready"
+            tail -80 /tmp/fusion-ui-simulator.log
+            exit 1
+          fi
+
+          WID=""
+          WINDOW_OK=false
+          for attempt in $(seq 1 50); do
+            WID="$(xdotool search --name 'CIQ Simulator' 2>/dev/null | tail -n1 || true)"
+            if [[ -n "${WID}" ]]; then
+              WIDTH="$(xdotool getwindowgeometry --shell "${WID}" | sed -n 's/^WIDTH=//p')"
+              HEIGHT="$(xdotool getwindowgeometry --shell "${WID}" | sed -n 's/^HEIGHT=//p')"
+              # The native simulator is initially 446x700 and expands
+              # to its app display only AFTER monkeydo launches a PRG.
+              if (( WIDTH >= 400 && HEIGHT >= 650 )); then WINDOW_OK=true; break; fi
+            fi
+            sleep 0.5
+          done
+          if [[ "${WINDOW_OK}" != true ]]; then
+            echo "Simulator window did not reach expected geometry"
+            xwininfo -root -tree || true
+            exit 1
+          fi
+          sleep 2
+          import -window "${WID}" /tmp/fusion-native.png
+          NATIVE_HASH="$(convert /tmp/fusion-native.png -depth 8 RGB:- | sha256sum | awk '{print $1}')"
+          echo "Native simulator geometry: ${WIDTH}x${HEIGHT}; decoded RGB hash: ${NATIVE_HASH}"
+
+          stdbuf -oL -eL "${CIQ_SDK_BIN}/monkeydo" \
+            build/garmin/FusionTrainingStatus.prg fenix847mm \
+            > /tmp/fusion-ui-monkeydo.log 2>&1 &
+          MONKEYDO_PID=$!
+          READY=false
+          LAST_HASH=""
+          for attempt in $(seq 1 40); do
+            kill -0 "${SIM_PID}" 2>/dev/null || { echo "Simulator exited early"; exit 1; }
+            sleep 0.8
+            # The app may create/resize its visible simulator window when it
+            # starts. Never keep a stale/native-only X11 window id.
+            CURRENT_WID="$(xdotool search --name 'CIQ Simulator' 2>/dev/null | tail -n1 || true)"
+            if [[ -z "${CURRENT_WID}" ]]; then
+              echo "CIQ simulator window disappeared after monkeydo"
+              cat /tmp/fusion-ui-monkeydo.log || true
+              exit 1
+            fi
+            WID="${CURRENT_WID}"
+            import -window "${WID}" /tmp/fusion-page-current.png
+            LAST_HASH="$(convert /tmp/fusion-page-current.png -depth 8 RGB:- | sha256sum | awk '{print $1}')"
+            if [[ "${LAST_HASH}" != "${NATIVE_HASH}" ]]; then
+              sleep 1
+              import -window "${WID}" /tmp/fusion-page-stable.png
+              STABLE_HASH="$(convert /tmp/fusion-page-stable.png -depth 8 RGB:- | sha256sum | awk '{print $1}')"
+              if [[ "${STABLE_HASH}" = "${LAST_HASH}" ]]; then
+                READY=true
+                break
+              fi
+            fi
+          done
+          if [[ "${READY}" != true ]]; then
+            echo "No stable changed app pixels; native=${NATIVE_HASH}, last=${LAST_HASH}"
+            cat /tmp/fusion-ui-monkeydo.log || true
+            exit 1
+          fi
+          TARGET="ui-screenshots/0$((PAGE + 1))-${PAGE_LABEL}.png"
+          cp /tmp/fusion-page-stable.png "${TARGET}"
+          test "$(identify -format '%w' "${TARGET}")" -ge 700
+          test "$(identify -format '%h' "${TARGET}")" -ge 700
+          test "$(stat -c '%s' "${TARGET}")" -ge 10000
+          if grep -Eiq 'segmentation fault|watchdog|unhandled.*exception|runtime error' /tmp/fusion-ui-monkeydo.log; then
+            cat /tmp/fusion-ui-monkeydo.log
+            exit 1
+          fi
+          echo "Real Garmin screenshot: ${TARGET}; pixelhash=${STABLE_HASH}"
+          sha256sum "${TARGET}"
+
