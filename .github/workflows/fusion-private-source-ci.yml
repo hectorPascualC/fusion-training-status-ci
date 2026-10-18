@@ -177,5 +177,19 @@ jobs:
         run: |
           echo "Audited private source SHA: $SOURCE_SHA" >> "$GITHUB_STEP_SUMMARY"
           echo "Static: $SRC | Android: $ANDROID | Garmin: $GARMIN" >> "$GITHUB_STEP_SUMMARY"
-          test "$SRC" = success && test "$ANDROID" = success && test "$GARMIN" = success
+          # A bare 'test a && test b && test c' followed by echo is NOT
+          # fail-closed under bash -e: an intermediate false result may be
+          # ignored and the final echo returns zero. Use explicit rejection.
+          all_pass() { [[ "$1" == success && "$2" == success && "$3" == success ]]; }
+          all_pass success success success
+          if all_pass success failure success || \
+             all_pass failure success success || \
+             all_pass success success cancelled; then
+            echo 'FAIL: aggregate self-test accepted a failing dependency' >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          if ! all_pass "$SRC" "$ANDROID" "$GARMIN"; then
+            echo 'FAIL: one or more engineering dependencies failed or were skipped.' >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
           echo 'PASS ENGINEERING; official Garmin package and real Fenix 8 runtime still BLOCKED.' >> "$GITHUB_STEP_SUMMARY"
