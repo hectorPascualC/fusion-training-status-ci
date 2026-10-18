@@ -241,6 +241,10 @@ jobs:
             cat /tmp/fusion-ui-monkeydo.log
             exit 1
           fi
+          echo "=== X11 simulator window tree (check overlays obscuring chart) ==="
+          xwininfo -root -tree | tail -100 || true
+          echo "=== Captured window geometry ==="
+          xdotool getwindowgeometry --shell "${WID}" || true
           echo "Real Garmin screenshot: ${TARGET}; pixelhash=${STABLE_HASH}"
           sha256sum "${TARGET}"
           # Only a deliberately synthetic TEST screenshot is encoded into
