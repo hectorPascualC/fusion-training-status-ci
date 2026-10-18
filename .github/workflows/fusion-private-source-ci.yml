@@ -43,142 +43,18 @@ jobs:
         name: Record immutable private commit for all jobs
         shell: bash
         run: echo "source_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-      - name: Validate project, security, data, UI and performance contracts
+      - name: Enforce no automatic private performance-runner consumption
         shell: bash
         run: |
           set -euo pipefail
-          # Independent proof that the private performance branch is now CI-gated publicly.
-          python3 scripts/validate_performance_audit.py
-          bash scripts/validate_repo.sh
-          python3 scripts/scan_repo_secrets.py
-          echo "Source commit: $(git rev-parse --short=12 HEAD)"
-
-  android:
-    needs: source-audit
-    runs-on: ubuntu-24.04
-    timeout-minutes: 35
-    env:
-      ANDROID_HOME: /usr/local/lib/android/sdk
-      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
-    steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-        with:
-          repository: hectorPascualC/fusion-training-status
-          ref: ${{ needs.source-audit.outputs.source_sha }}
-          token: ${{ secrets.FUSION_PRIVATE_READ_TOKEN }}
-          persist-credentials: false
-          fetch-depth: 1
-      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
-        with:
-          distribution: temurin
-          java-version: '17'
-      - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5
-        with:
-          gradle-version: '8.11.1'
-          cache-disabled: true
-      - name: Install Android SDK
-        shell: bash
-        run: |
-          set -euo pipefail
-          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
-          test -x "$SDKMANAGER"
-          yes | "$SDKMANAGER" --licenses >/dev/null || true
-          "$SDKMANAGER" 'platforms;android-36' 'build-tools;35.0.0'
-      - name: Android tests, lint, debug/release and APK security
-        shell: bash
-        run: |
-          set -euo pipefail
-          bash scripts/build_android.sh
-          python3 scripts/report_android_build_metrics.py
-          bash scripts/validate_apk_security.sh
-      # No cache or APK artifacts uploaded.
-
-  garmin-engineering:
-    needs: source-audit
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-        with:
-          repository: hectorPascualC/fusion-training-status
-          ref: ${{ needs.source-audit.outputs.source_sha }}
-          token: ${{ secrets.FUSION_PRIVATE_READ_TOKEN }}
-          persist-credentials: false
-          fetch-depth: 1
-      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
-        with:
-          distribution: temurin
-          java-version: '17'
-      - name: Install pinned Connect IQ SDK 9.2.0
-        shell: bash
-        run: |
-          set -euo pipefail
-          VERSION=0.8.4
-          HASH=5d57b8f9cfcd02d3b3f48e19d6daca0480e4c6f627926f15d8617ef8a6f57e0b
-          curl -fsSLo /tmp/ciq.tar.gz "https://github.com/lindell/connect-iq-sdk-manager-cli/releases/download/v${VERSION}/connect-iq-sdk-manager-cli_${VERSION}_Linux_x86_64.tar.gz"
-          echo "$HASH  /tmp/ciq.tar.gz" | sha256sum --check -
-          mkdir -p /tmp/ciq-manager "$HOME/.local/bin"
-          tar -xzf /tmp/ciq.tar.gz -C /tmp/ciq-manager
-          install -m 0755 "$(find /tmp/ciq-manager -type f -name connect-iq-sdk-manager -print -quit)" "$HOME/.local/bin/connect-iq-sdk-manager"
-          "$HOME/.local/bin/connect-iq-sdk-manager" agreement view > /tmp/agreement.txt
-          AGREEMENT=CC737BBBA104D7740D5BBCF27D0F6382
-          test "$(awk '/Current Hash:/ {print $3}' /tmp/agreement.txt)" = "$AGREEMENT"
-          "$HOME/.local/bin/connect-iq-sdk-manager" agreement accept --agreement-hash "$AGREEMENT"
-          "$HOME/.local/bin/connect-iq-sdk-manager" sdk set 9.2.0
-          echo "$("$HOME/.local/bin/connect-iq-sdk-manager" sdk current-path --bin)" >> "$GITHUB_PATH"
-      - name: Install pinned engineering-only Fenix 8 device metadata
-        shell: bash
-        run: |
-          set -euo pipefail
-          HASH=afdfa3abb4f1628f4cc241f87729560bab0e7a89
-          git init -q /tmp/device-mirror
-          git -C /tmp/device-mirror remote add origin https://github.com/AzzureSkyy/Garmin-Sdk.git
-          git -C /tmp/device-mirror sparse-checkout init --cone
-          git -C /tmp/device-mirror sparse-checkout set ConnectIQ/Devices/fenix847mm
-          git -C /tmp/device-mirror fetch --depth 1 origin "$HASH"
-          git -C /tmp/device-mirror checkout -q --detach FETCH_HEAD
-          test "$(git -C /tmp/device-mirror rev-parse HEAD)" = "$HASH"
-          DEVICE=/tmp/device-mirror/ConnectIQ/Devices/fenix847mm
-          python3 - "$DEVICE/compiler.json" "$DEVICE/simulator.json" <<'PY'
-          import json,sys
-          with open(sys.argv[1],encoding='utf-8') as f: c=json.load(f)
-          with open(sys.argv[2],encoding='utf-8') as f: s=json.load(f)
-          assert c['deviceId']=='fenix847mm'
-          assert c['resolution']=={'height':454,'width':454}
-          assert next(a for a in c['appTypes'] if a['type']=='watchApp')['memoryLimit']==786432
-          assert s['graphicsResourcePoolSize']==3145728
-          PY
-          mkdir -p "$HOME/.Garmin/ConnectIQ/Devices"
-          cp -R "$DEVICE" "$HOME/.Garmin/ConnectIQ/Devices/fenix847mm"
-      - name: Compile throwaway engineering PRG (no signed release or uploads)
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          openssl genrsa -out /tmp/temp-key.pem 4096 >/dev/null 2>&1
-          openssl pkcs8 -topk8 -inform PEM -outform DER -in /tmp/temp-key.pem -out /tmp/temp-key.der -nocrypt
-          GARMIN_DEVELOPER_KEY=/tmp/temp-key.der GARMIN_DEVICE=fenix847mm GARMIN_BUILD_STATS=0 bash scripts/build_garmin.sh
-          rm -f /tmp/temp-key.pem /tmp/temp-key.der
-
-  audit-result:
-    if: always() && github.repository == 'hectorPascualC/fusion-training-status-ci'
-    needs: [source-audit, android, garmin-engineering]
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Engineering gate (hardware release gate intentionally separate)
-        env:
-          SRC: ${{ needs.source-audit.result }}
-          ANDROID: ${{ needs.android.result }}
-          GARMIN: ${{ needs.garmin-engineering.result }}
-          SOURCE_SHA: ${{ needs.source-audit.outputs.source_sha }}
-        run: |
-          echo "Audited private source SHA: $SOURCE_SHA" >> "$GITHUB_STEP_SUMMARY"
-          echo "Static: $SRC | Android: $ANDROID | Garmin: $GARMIN" >> "$GITHUB_STEP_SUMMARY"
-          test "$SRC" = success && test "$ANDROID" = success && test "$GARMIN" = success
-          echo 'PASS ENGINEERING; official Garmin package and real Fenix 8 runtime still BLOCKED.' >> "$GITHUB_STEP_SUMMARY"
-, trigger, flags=re.MULTILINE)
-          assert requested_paths == ["docs/PRIVATE_ANDROID_COMPANION_BUILD_REQUEST.md"], requested_paths
-          print("Private Actions-minute containment: PASS (marker-only beta trigger)")
+          grep -Fq 'branches: [main, "phase/**", "security/**"]' .github/workflows/ci.yml
+          python3 - <<'PY'
+          from pathlib import Path
+          text = Path(".github/workflows/private-android-companion.yml").read_text()
+          event_header = text.split("permissions:", 1)[0]
+          assert "workflow_dispatch:" in event_header
+          assert "  push:" not in event_header, "Private beta unexpectedly auto-starts on push"
+          print("Private Actions-minute containment: PASS")
           PY
       - name: Validate project, security, data, UI and performance contracts
         shell: bash
