@@ -249,18 +249,9 @@ jobs:
           tail -100 /tmp/fusion-ui-monkeydo.log || true
           echo "=== Actual simulator diagnostic log ==="
           tail -100 /tmp/fusion-ui-simulator.log || true
-          # A top-level Error dialog can obscure the display even if stable
-          # PNG pixels differ from the native simulator. Fail visually closed.
-          if xdotool search --name '^Error
-          echo "Real Garmin screenshot: ${TARGET}; pixelhash=${STABLE_HASH}"
-          sha256sum "${TARGET}"
-          # Only a deliberately synthetic TEST screenshot is encoded into
-          # public CI logs. No Garmin/Health Connect personal data are present.
-          echo FUSION_TEST_SCREENSHOT_START
-          base64 "${TARGET}"
-          echo FUSION_TEST_SCREENSHOT_END
-
- >/dev/null 2>&1; then
+          # A separate simulator Error popup can hide the graph even when
+          # the screen pixels changed. That is a FAIL, not visual success.
+          if xdotool search --name '^Error$' >/dev/null 2>&1; then
             echo "UI visual audit FAIL: simulator Error popup obscures chart"
             exit 1
           fi
