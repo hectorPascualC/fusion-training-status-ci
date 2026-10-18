@@ -2,6 +2,11 @@ name: Fusion private beta cloud packaging (no private Actions)
 
 on:
   workflow_dispatch:
+  # Explicit owner-authored request marker; unrelated pushes do not package or publish.
+  push:
+    branches: [main]
+    paths:
+      - 'docs/fusion-beta-package-request.md'
 
 permissions:
   contents: read
@@ -12,7 +17,7 @@ concurrency:
 
 jobs:
   package-stable-private-beta:
-    # Private binary delivery is restricted to the owner's manual invocation on public main.
+    # Private binary delivery: owner-only manual dispatch or owner-edited request marker on public main.
     if: github.repository == 'hectorPascualC/fusion-training-status-ci' && github.ref == 'refs/heads/main' && github.actor == 'hectorPascualC'
     runs-on: ubuntu-24.04
     timeout-minutes: 55
