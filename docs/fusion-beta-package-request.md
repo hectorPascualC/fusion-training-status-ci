@@ -26,3 +26,7 @@ Ensure source, Garmin SDK compile, Android tests/security and signed private rel
 ## 2026-10-19 — retry RX diagnostic beta after single-use assertion comment restoration
 
 Source security guard re-established the literal single-use marker while preserving one-time request IDs; rerun full public cloud packaging from latest performance/master-audit. Previous run 39322307199 failed at static transport-security before build; do not reuse its outputs.
+
+## 2026-10-19 — final retry after Garmin typed RX error callback
+
+Previous public run 39322443644 PASSED source, Android JUnit/lint/APK audits and signer recovery but failed Garmin compilation at FusionPhoneBridge.mc line 35: onPhoneMessageError err must be typed Comm.PhoneAppMessageError (not Any). Private source corrected and source guard updated. Rebuild signed beta with the same persistent signer; publish only to PRIVATE Release. Verify no errors.
