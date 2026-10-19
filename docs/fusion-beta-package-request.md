@@ -22,3 +22,7 @@ Trigger exactly one public cloud beta package build from the private performance
 Physical evidence: Android reports Garmin payload SUCCESS, but watch DATA SOURCES shows PHONE: NO CACHE. Private source now reports short states on watch (RX: STORED / RX: INVALID DATA / RX: ID MISMATCH / RX: FORMAT / TX: SENT / TX: FAILED / RX: DELIVERY ERR), supports only one-entry bounded array envelopes, preserves strict FusionStore validation and Garmin protocol, and adds source guard.
 
 Ensure source, Garmin SDK compile, Android tests/security and signed private release all PASS. See private docs/WORKER04_WATCH_RX_AUDIT.md.
+
+## 2026-10-19 — retry RX diagnostic beta after single-use assertion comment restoration
+
+Source security guard re-established the literal single-use marker while preserving one-time request IDs; rerun full public cloud packaging from latest performance/master-audit. Previous run 39322307199 failed at static transport-security before build; do not reuse its outputs.
