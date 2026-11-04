@@ -62,3 +62,9 @@ Run **full** security/source/Android CI and stable signed private Garmin IQ pack
 Second real Garmin simulator captures improved Recovery, Overview, WHY, Data Sources. New private source includes final round-display polishing: move recovery radial arc clear of title, compact Overview caption and actual recovery zone, shift mini training bars away from numbers, move Data Source status dots outside label text, and allow complete source WHY clause with width-measured 348 px limit. Training and Trends were improved in prior pass with shorter labels / no footer collisions.
 
 Execute complete source security/performance/Android audit, pinned Garmin SDK 9.2.0 compiler, **same persistent beta signing key and UUID**, PRIVATE binary-only Release. Preserve Health Connect/sync protocol. Physical watch acceptance pending owner's update through Connect IQ.
+
+## 2026-11-04 — final V3 Training legibility correction
+
+Actual simulator screenshots verified 5/6 page designs after first pass. Training remained clipped at "CHRO..." and LOW LOAD touched footer. Current private performance/master-audit fixes: allow 160px CHRONIC caption measured at FONT_XTINY, raise LOW LOAD caption from h*.725 to h*.69, and gates both layout assertions in validate_visual_v3.py. Earlier fixes include recovery arc separation, concise overview summary, Data Sources status dots no longer on letters, and longer real WHY clause.
+
+Run complete private source/Android/security/Garmin compile, same stable beta UUID and developer signer, publish PRIVATE binary release only. No new Android permission/sync changes. User must upload Garmin IQ to beta listing after full audit.
