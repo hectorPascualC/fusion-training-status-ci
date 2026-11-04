@@ -44,3 +44,9 @@ Previous beta run #41843630897 rejected a valid local extraction `response.get("
 ## 2026-11-04 — Fēnix watch BUILD 1104D type-envelope diagnostic
 
 User reports no change after previous correction. The last source bundle may not have been installed. Build from latest private performance/master-audit with visible Data Sources fingerprint **BUILD 1104D**; distinguish RX missing/nontext/echo/unknown type; support strictly validated direct-payload envelope only if full 17-field schema, request ID, timestamps and anti-replay all PASS. No Android, algorithm, permissions, UUID or signing-key changes. Validate all source and Gradle/Garmin stages and upload only to private Release. The private audit is docs/WATCH_RX_DIAGNOSTIC_BUILD_1104D.md.
+
+## 2026-11-04 — Fusion UI V3 full six-screen renderer build/audit
+
+Build an immutable signed **private** beta using the existing stable V2 UUID/key and latest `performance/master-audit`. User requested full functional implementation, not a mockup. Private source adds `garmin/source/FusionVisualRenderer.mc`, activated by FusionStatusView on all six pages; data-faithful recovery semicircle, REAL seven-day activity chart, correct LOW load classification at 0.26, compact WHY and Data Sources. All Android/Health Connect/sync protocols unchanged.
+
+Audit: `scripts/validate_visual_v3.py` plus all original code/security/performance guards, Android tests/lint/build, monkeyc Garmin SDK 9.2.0 signing/export, private release checksum. Do not publish private sources or artifacts in this public repo. Physical Fēnix 8 acceptance remains pending until Garmin Developer beta upload/update.
