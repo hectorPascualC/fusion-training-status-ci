@@ -56,3 +56,9 @@ Audit: `scripts/validate_visual_v3.py` plus all original code/security/performan
 User requested a fully readable V3 design rather than source-only success. Six **actual Garmin emulator** page captures of the first V3 release showed multiple clipped labels and overlaps despite green compilation. Private code `FusionVisualRenderer.mc` now fixes adaptive numeric fonts, full OVERVIEW status, short factual training chart title, recovery radial-gauge text spacing, TRAINING load ratio and LOW label, TRENDS caption/footer, Data Sources diagnostic rows, and complete two-line engine WHY rationale.
 
 Run **full** security/source/Android CI and stable signed private Garmin IQ packaging from the latest performance/master-audit commit. Verify the private asset digest. New six-page visual QA workflow runs separately with synthetic data and must be audited before declaring readiness. No Garmin physical hardware claims until actual watch update.
+
+## 2026-11-04 — Fusion V3 final polish compile after second simulator inspection
+
+Second real Garmin simulator captures improved Recovery, Overview, WHY, Data Sources. New private source includes final round-display polishing: move recovery radial arc clear of title, compact Overview caption and actual recovery zone, shift mini training bars away from numbers, move Data Source status dots outside label text, and allow complete source WHY clause with width-measured 348 px limit. Training and Trends were improved in prior pass with shorter labels / no footer collisions.
+
+Execute complete source security/performance/Android audit, pinned Garmin SDK 9.2.0 compiler, **same persistent beta signing key and UUID**, PRIVATE binary-only Release. Preserve Health Connect/sync protocol. Physical watch acceptance pending owner's update through Connect IQ.
