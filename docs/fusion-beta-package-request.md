@@ -40,3 +40,7 @@ Run full audit/test, signed Garmin IQ using **existing persistent signer** and p
 ## 2026-11-04 — correct static guard and rerun Garmin string-value beta
 
 Previous beta run #41843630897 rejected a valid local extraction `response.get("requestId")` because new static test unintentionally banned any call, rather than banning only `!= _pendingRequestId`. New source commit corrects this assertion without changing the newly fixed watch code. Re-run complete signed private packaging and security checks.
+
+## 2026-11-04 — Fēnix watch BUILD 1104D type-envelope diagnostic
+
+User reports no change after previous correction. The last source bundle may not have been installed. Build from latest private performance/master-audit with visible Data Sources fingerprint **BUILD 1104D**; distinguish RX missing/nontext/echo/unknown type; support strictly validated direct-payload envelope only if full 17-field schema, request ID, timestamps and anti-replay all PASS. No Android, algorithm, permissions, UUID or signing-key changes. Validate all source and Gradle/Garmin stages and upload only to private Release. The private audit is docs/WATCH_RX_DIAGNOSTIC_BUILD_1104D.md.
