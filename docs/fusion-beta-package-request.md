@@ -36,3 +36,7 @@ Previous public run 39322443644 PASSED source, Android JUnit/lint/APK audits and
 Compile and privately package a new signed Fēnix 8 stable beta V2 from performance/master-audit. Live watch RX: WRONG TYPE, NO CACHE despite Android SUCCESS and computed real Fitbit/Garmin inputs. Root cause in Monkey C is string identity vs content equality across type check, request ID, payload status/confidence/freshness and screen color. Strict schema/anti-replay checks preserved. Source includes regression guard validate_watch_wire_string_equality.py, no Android functional changes.
 
 Run full audit/test, signed Garmin IQ using **existing persistent signer** and private Release, no public artifacts. See private docs/WORKER04_WATCH_RX_WRONG_TYPE_20261104.md.
+
+## 2026-11-04 — correct static guard and rerun Garmin string-value beta
+
+Previous beta run #41843630897 rejected a valid local extraction `response.get("requestId")` because new static test unintentionally banned any call, rather than banning only `!= _pendingRequestId`. New source commit corrects this assertion without changing the newly fixed watch code. Re-run complete signed private packaging and security checks.
