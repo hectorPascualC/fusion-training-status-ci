@@ -30,3 +30,9 @@ Source security guard re-established the literal single-use marker while preserv
 ## 2026-10-19 — final retry after Garmin typed RX error callback
 
 Previous public run 39322443644 PASSED source, Android JUnit/lint/APK audits and signer recovery but failed Garmin compilation at FusionPhoneBridge.mc line 35: onPhoneMessageError err must be typed Comm.PhoneAppMessageError (not Any). Private source corrected and source guard updated. Rebuild signed beta with the same persistent signer; publish only to PRIVATE Release. Verify no errors.
+
+## 2026-11-04 — Fēnix 8 RX: WRONG TYPE fix
+
+Compile and privately package a new signed Fēnix 8 stable beta V2 from performance/master-audit. Live watch RX: WRONG TYPE, NO CACHE despite Android SUCCESS and computed real Fitbit/Garmin inputs. Root cause in Monkey C is string identity vs content equality across type check, request ID, payload status/confidence/freshness and screen color. Strict schema/anti-replay checks preserved. Source includes regression guard validate_watch_wire_string_equality.py, no Android functional changes.
+
+Run full audit/test, signed Garmin IQ using **existing persistent signer** and private Release, no public artifacts. See private docs/WORKER04_WATCH_RX_WRONG_TYPE_20261104.md.
