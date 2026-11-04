@@ -68,3 +68,7 @@ Execute complete source security/performance/Android audit, pinned Garmin SDK 9.
 Actual simulator screenshots verified 5/6 page designs after first pass. Training remained clipped at "CHRO..." and LOW LOAD touched footer. Current private performance/master-audit fixes: allow 160px CHRONIC caption measured at FONT_XTINY, raise LOW LOAD caption from h*.725 to h*.69, and gates both layout assertions in validate_visual_v3.py. Earlier fixes include recovery arc separation, concise overview summary, Data Sources status dots no longer on letters, and longer real WHY clause.
 
 Run complete private source/Android/security/Garmin compile, same stable beta UUID and developer signer, publish PRIVATE binary release only. No new Android permission/sync changes. User must upload Garmin IQ to beta listing after full audit.
+
+## 2026-11-04 — V3 final Trends visual polish
+
+Reviewed real Garmin simulator screenshot of Trends after six-page gallery run 41883366600: real weekly minute bars and ACTIVE 2/7 are correct and readable, but ACTIVE caption touched FRESH divider. Private source has a final .735 -> .710 vertical shift for its caption plus regression assertion. Keep actual data and chart untouched. Build exact latest `performance/master-audit` with full source/Android/security tests, same encrypted persistent stable beta signer and private-only .iq release. The owner will update in Connect IQ, no Android reinstall.
