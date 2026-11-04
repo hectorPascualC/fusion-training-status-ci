@@ -291,3 +291,5 @@ jobs:
           base64 "${TARGET}"
           echo FUSION_TEST_SCREENSHOT_END
 
+
+# 2026-11-04 audit repeat: checked six simulator captures; corrected recovery/training/trends/sources/overview spacing and WHY rationale layout in private source.
