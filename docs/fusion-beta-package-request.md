@@ -80,3 +80,7 @@ Production watch view now dispatches to the V3 source-faithful renderer (Overvie
 ## 2026-11-05 — V3 final pixel-spacing correction and signed package retest
 
 The six-page Garmin 454px visual simulator run #41982904354 succeeded. Manual pixel inspection found loadRatio 0.26 intersecting the Training band and Recovery zone too close to confidence. Source fix e6b6637d moves the ratio value up and creates space under MODERATE. Build from the latest performance/master-audit including this fix, validate full repository/Android/Garmin stack and upload fresh same-signature IQ into PRIVATE release only. No watch UUID or Android schema change.
+
+## 2026-11-05 — final precise Garmin V3 typography spacing fix
+
+Visual re-audit of signed-pending source e6b6637d showed ratio 0.26 was shifted too near its label and MODERATE too near score 56. Private source 8dcf10b7 applies balanced 454px typography positions. Repeat whole public signed beta pipeline using existing RSA beta key. Verify source, Android and Connect IQ compile, private IQ assets and full V3 six-page simulator.
