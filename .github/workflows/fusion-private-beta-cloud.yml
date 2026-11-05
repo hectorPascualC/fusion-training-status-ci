@@ -1,4 +1,5 @@
 name: Fusion private beta cloud packaging (no private Actions)
+# 2026-11-05 signed private V3 renderer integration, recompiled after duplicate member fix.
 
 on:
   workflow_dispatch:
