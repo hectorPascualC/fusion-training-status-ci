@@ -76,3 +76,7 @@ Reviewed real Garmin simulator screenshot of Trends after six-page gallery run 4
 ## 2026-11-05 — Fusion V3 six-screen integrated signed beta
 
 Production watch view now dispatches to the V3 source-faithful renderer (Overview/Recovery/Training/Trends/Data Sources/Why). The first exploratory build found a duplicate renderer declaration; private source commit d4ef5da1 fixes it. Build using persistent same-key private beta signer, run source/Android/Monkey C/security audits, and upload IQ+APK privately. Preserve real Health Connect and Garmin data; no synthetic fixture in release. Real-device Garmin Connect IQ update and screenshot acceptance remain manual.
+
+## 2026-11-05 — V3 final pixel-spacing correction and signed package retest
+
+The six-page Garmin 454px visual simulator run #41982904354 succeeded. Manual pixel inspection found loadRatio 0.26 intersecting the Training band and Recovery zone too close to confidence. Source fix e6b6637d moves the ratio value up and creates space under MODERATE. Build from the latest performance/master-audit including this fix, validate full repository/Android/Garmin stack and upload fresh same-signature IQ into PRIVATE release only. No watch UUID or Android schema change.
