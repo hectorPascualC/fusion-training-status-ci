@@ -1,4 +1,5 @@
 name: Fusion V3 final six-page simulator acceptance
+# 2026-11-05 rerun after Gemini/Connect IQ compiler duplicate renderer initialization fix.
 # 2026-11-05 visual V3 integrated: repeat all six Garmin 454px simulator screenshots.
 # Revalidate whole-word Why wrapping at private source 68ae3f50.
 # Rerun after adding bounded Why multiline text and Training spacing.
