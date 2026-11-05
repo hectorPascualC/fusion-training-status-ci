@@ -84,3 +84,7 @@ The six-page Garmin 454px visual simulator run #41982904354 succeeded. Manual pi
 ## 2026-11-05 — final precise Garmin V3 typography spacing fix
 
 Visual re-audit of signed-pending source e6b6637d showed ratio 0.26 was shifted too near its label and MODERATE too near score 56. Private source 8dcf10b7 applies balanced 454px typography positions. Repeat whole public signed beta pipeline using existing RSA beta key. Verify source, Android and Connect IQ compile, private IQ assets and full V3 six-page simulator.
+
+## 2026-11-05 — Visual V4 approved-mockup fidelity fix, exact signed beta
+
+User reported that V3 real-device display did not match approved concept images. The private branch now implements the actual concept-style rounded status pill, three metric cards, wide recovery arc + score capsule, training load-zone bar, real seven-day training chart/delta, three explanation cards, and compact footer. No fabricated stress, sleep, Body Battery, HRV trends or optimistic statuses. Passed six-page synthetic Garmin simulator screenshots in public workflow 42016581355; re-run full secure source/Android/Garmin checks, export using SAME persistent signing key and unchanged UUID, and upload **only** to PRIVATE GitHub Release. Do NOT auto-publish to Garmin Connect IQ public store. Existing Android Companion remains correct; no mobile APK install needed.
