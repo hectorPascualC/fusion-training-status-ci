@@ -1,4 +1,5 @@
 name: Fusion engineering (private ephemeral checkout)
+# 2026-11-05 V3 real renderer integration: public engineering CI acceptance gate.
 
 # The private-read token is never exposed to PR-triggered workflows.
 # Post-integration six-page visual audit: 2026-10-18 private source 26d310537736.
