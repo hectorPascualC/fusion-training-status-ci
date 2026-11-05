@@ -72,3 +72,7 @@ Run complete private source/Android/security/Garmin compile, same stable beta UU
 ## 2026-11-04 — V3 final Trends visual polish
 
 Reviewed real Garmin simulator screenshot of Trends after six-page gallery run 41883366600: real weekly minute bars and ACTIVE 2/7 are correct and readable, but ACTIVE caption touched FRESH divider. Private source has a final .735 -> .710 vertical shift for its caption plus regression assertion. Keep actual data and chart untouched. Build exact latest `performance/master-audit` with full source/Android/security tests, same encrypted persistent stable beta signer and private-only .iq release. The owner will update in Connect IQ, no Android reinstall.
+
+## 2026-11-05 — Fusion V3 six-screen integrated signed beta
+
+Production watch view now dispatches to the V3 source-faithful renderer (Overview/Recovery/Training/Trends/Data Sources/Why). The first exploratory build found a duplicate renderer declaration; private source commit d4ef5da1 fixes it. Build using persistent same-key private beta signer, run source/Android/Monkey C/security audits, and upload IQ+APK privately. Preserve real Health Connect and Garmin data; no synthetic fixture in release. Real-device Garmin Connect IQ update and screenshot acceptance remain manual.
