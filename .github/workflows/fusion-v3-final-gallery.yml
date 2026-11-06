@@ -301,7 +301,7 @@ jobs:
           # This is the first actual fidelity gate. The smoke gate above only
           # checks for presence of graphics, and CANNOT certify mockup fidelity.
           python3 scripts/fusion_design_fidelity_gate.py \
-            --page "${PAGE_LABEL}" --screenshot "${TARGET}" --max-rmse 0.015
+            --page "${PAGE_LABEL}" --screenshot "${TARGET}" --max-mask-mismatch 0.24
           echo "Real Garmin screenshot: ${TARGET}; pixelhash=${STABLE_HASH}"
           sha256sum "${TARGET}"
           # Only a deliberately synthetic TEST screenshot is encoded into
