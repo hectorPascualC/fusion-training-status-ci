@@ -48,6 +48,12 @@ jobs:
           token: ${{ secrets.FUSION_PRIVATE_READ_TOKEN }}
           persist-credentials: false
           fetch-depth: 1
+      - name: PHASE 1 — verify six independently approved design references
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 private/scripts/fusion_design_fidelity_gate.py
+          echo "PHASE 1 approved sketch baseline: PASS" >> "$GITHUB_STEP_SUMMARY"
       - name: Detect and repair known visual regressions, then audit source
         shell: bash
         run: |
