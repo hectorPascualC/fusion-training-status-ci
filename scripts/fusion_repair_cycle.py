@@ -97,8 +97,13 @@ def main():
     state = "PASS"
     audits = {}
     try:
-        # Dispatch both before polling, for real six-page parallel coverage.
+        # Strict phase barrier: do not dispatch the next workflow until the
+        # previous phase has completed and passed. No parallel false PASS.
         for label, workflow in WORKFLOWS:
+            if state != "PASS":
+                audits[label] = {"state":"LOCKED",
+                    "reason":"Previous phase did not pass"}
+                continue
             before = {item["id"] for item in runs(workflow)}
             api(f"repos/{REPO}/actions/workflows/{workflow}/dispatches",
                 method="POST", fields={"ref":"main"})
@@ -106,8 +111,7 @@ def main():
             audits[label] = {"run_id":run_id, "state":"STARTED",
                              "url":f"https://github.com/{REPO}/actions/runs/{run_id}"}
             print(f"{label}: {audits[label]['url']}", flush=True)
-        for label, _ in WORKFLOWS:
-            audits[label] = monitor(audits[label]["run_id"], label)
+            audits[label] = monitor(run_id, label)
             if audits[label]["state"] != "PASS":
                 state = "BLOCKED"
     except (RuntimeError, subprocess.CalledProcessError, ValueError, KeyError) as err:
