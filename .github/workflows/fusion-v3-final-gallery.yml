@@ -18,7 +18,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: fusion-v5-final-gallery-20261106
+  group: fusion-v5-final-gallery-polish-20261106
   cancel-in-progress: false
 jobs:
   six-page-gallery:
