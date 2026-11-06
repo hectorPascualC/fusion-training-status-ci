@@ -1,4 +1,4 @@
-name: Fusion V3 final six-page simulator acceptance
+name: Fusion V5 six-page simulator acceptance
 # V5 final spacing retest private source 61bcfff86d88 2026-11-06.
 # 2026-11-06 V5 round-display retest: private source 2fe58d979fcf.
 # 2026-11-05 V4 second-pass all six mockup fidelity screenshots.
@@ -18,7 +18,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: fusion-v5-final-gallery-polish-20261106
+  group: fusion-v5-${{ github.event_name }}
   cancel-in-progress: false
 jobs:
   six-page-gallery:
@@ -33,7 +33,7 @@ jobs:
           - {page: 3, label: trends}
           - {page: 4, label: data-sources}
           - {page: 5, label: why}
-    if: github.repository == 'hectorPascualC/fusion-training-status-ci' && github.ref == 'refs/heads/main'
+    if: github.repository == 'hectorPascualC/fusion-training-status-ci' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-22.04
     timeout-minutes: 25
     steps:
