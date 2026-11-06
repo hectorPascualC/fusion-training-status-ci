@@ -23,8 +23,8 @@ concurrency:
 jobs:
   six-page-gallery:
     strategy:
-      fail-fast: false
-      max-parallel: 3
+      fail-fast: true
+      max-parallel: 1
       matrix:
         include:
           - {page: 0, label: overview}
@@ -44,6 +44,9 @@ jobs:
           token: ${{ secrets.FUSION_PRIVATE_READ_TOKEN }}
           persist-credentials: false
           fetch-depth: 1
+      - name: PHASE 1 — approved design reference must exist
+        shell: bash
+        run: python3 scripts/fusion_design_fidelity_gate.py
       - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
         with:
           distribution: temurin
@@ -295,6 +298,10 @@ jobs:
           # missing page primitives or truncated PNG, not just a green compile.
           # This is a smoke gate, NOT a pixel-perfect approved-sketch comparison.
           python3 scripts/fusion_simulator_pixel_gate.py "${TARGET}" "${PAGE}"
+          # This is the first actual fidelity gate. The smoke gate above only
+          # checks for presence of graphics, and CANNOT certify mockup fidelity.
+          python3 scripts/fusion_design_fidelity_gate.py \
+            --page "${PAGE_LABEL}" --screenshot "${TARGET}" --max-rmse 0.015
           echo "Real Garmin screenshot: ${TARGET}; pixelhash=${STABLE_HASH}"
           sha256sum "${TARGET}"
           # Only a deliberately synthetic TEST screenshot is encoded into
