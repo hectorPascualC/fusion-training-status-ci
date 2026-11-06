@@ -1,5 +1,4 @@
-name: Fusion V3 final six-page simulator acceptance
-# 2026-11-05 V4 second-pass all six mockup fidelity screenshots.
+name: Fusion V3 final six-page simulator acceptance# 2026-11-05 V4 second-pass all six mockup fidelity screenshots.
 # 2026-11-05 Fusion V4 mockup-fidelity six-screen real Garmin simulator capture.
 # 2026-11-05 final V3 precise typography spacing retest (ratio, recovery score).
 # 2026-11-05 pixel review retest after ratio/y-zone spacing cleanup.
@@ -38,7 +37,7 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           repository: hectorPascualC/fusion-training-status
-          ref: performance/master-audit
+          ref: ui/v5-device-alignment-20261106
           token: ${{ secrets.FUSION_PRIVATE_READ_TOKEN }}
           persist-credentials: false
           fetch-depth: 1
