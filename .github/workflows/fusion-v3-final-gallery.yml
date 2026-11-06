@@ -33,7 +33,7 @@ jobs:
           - {page: 3, label: trends}
           - {page: 4, label: data-sources}
           - {page: 5, label: why}
-    if: github.repository == 'hectorPascualC/fusion-training-status-ci' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
+    if: github.repository == 'hectorPascualC/fusion-training-status-ci' && github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || github.event_name == 'push')
     runs-on: ubuntu-22.04
     timeout-minutes: 25
     steps:
