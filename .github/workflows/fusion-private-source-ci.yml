@@ -58,6 +58,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Both phase gates must PASS before standard Garmin/Android tests.
+          python3 scripts/fusion_design_fidelity_gate.py
+          python3 scripts/validate_poster_layout_v6.py
           # Independent proof that the private performance branch is now CI-gated publicly.
           python3 scripts/validate_performance_audit.py
           bash scripts/validate_repo.sh
