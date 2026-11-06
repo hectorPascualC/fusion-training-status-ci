@@ -1,4 +1,5 @@
 name: Fusion private beta cloud packaging (no private Actions)
+# 2026-11-06 authorized signed V5 visual release: pinned private source 6baeadf3d187c979910cfbd88fc14b1249161c54.
 # 2026-11-05 signed private V3 renderer integration, recompiled after duplicate member fix.
 
 on:
@@ -31,7 +32,7 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           repository: hectorPascualC/fusion-training-status
-          ref: performance/master-audit
+          ref: 6baeadf3d187c979910cfbd88fc14b1249161c54
           token: ${{ secrets.FUSION_PRIVATE_READ_TOKEN }}
           persist-credentials: false
           fetch-depth: 1
@@ -40,6 +41,11 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse --is-inside-work-tree)" = true
+          test "$(git rev-parse HEAD)" = "6baeadf3d187c979910cfbd88fc14b1249161c54" || { echo "BLOCKED: V5 source SHA changed"; exit 1; }
+          test -f garmin/source/FusionVisualRenderer.mc
+          grep -Fq 'var w = 116;' garmin/source/FusionVisualRenderer.mc
+          grep -Fq 'function drawReasonLines(' garmin/source/FusionVisualRenderer.mc
+          python3 scripts/fusion_auto_repair.py
           echo "Private source SHA: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
           python3 scripts/validate_performance_audit.py
           bash scripts/validate_repo.sh
@@ -208,11 +214,16 @@ jobs:
           set -euo pipefail
           test "$(gh api "repos/hectorPascualC/fusion-training-status" --jq .private)" = "true"
           TAG="fusion-signed-beta-$(git rev-parse --short=12 HEAD)"
+          test "$(git rev-parse HEAD)" = "6baeadf3d187c979910cfbd88fc14b1249161c54"
           IQ="build/garmin-beta/FusionTrainingStatus-private-beta.iq"
           APK="android-companion/build/outputs/apk/debug/android-companion-debug.apk"
           test -s "$IQ" && test -s "$APK"
           cat > "${RUNNER_TEMP}/notes.txt" <<'NOTES'
-          Fusion Training Status SIGNED private beta V2 + MATCHING ANDROID DEBUG APK, fenix847mm.
+          Fusion Training Status V5 visual alignment — signed private beta, fenix847mm.
+          Private source: 6baeadf3d187c979910cfbd88fc14b1249161c54.
+          Same persistent developer RSA signer and existing stable beta V2 UUID; graphic/UI changes only.
+          Engineering + six-page simulator fixture audit passed on 2026-11-06.
+          Physical Fenix 8 visual validation and approved-sketch pixel-perfect equality are not certified.
           Beta V2 UUID: f2107e87-abe2-5b29-845a-050d6a3142d9.
           Same persistent RSA key is reused from encrypted private GitHub backup.
 
