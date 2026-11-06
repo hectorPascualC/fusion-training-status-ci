@@ -291,6 +291,10 @@ jobs:
             echo FUSION_UNOBSTRUCTED_SCREENSHOT_END
             exit 1
           fi
+          # Actual captured Garmin pixels: reject a native/blank simulator,
+          # missing page primitives or truncated PNG, not just a green compile.
+          # This is a smoke gate, NOT a pixel-perfect approved-sketch comparison.
+          python3 scripts/fusion_simulator_pixel_gate.py "${TARGET}" "${PAGE}"
           echo "Real Garmin screenshot: ${TARGET}; pixelhash=${STABLE_HASH}"
           sha256sum "${TARGET}"
           # Only a deliberately synthetic TEST screenshot is encoded into
