@@ -3,6 +3,9 @@ name: Fusion V5 autonomous audit and bounded repair
 # Runs independently of ChatGPT. Public logs contain no private code or physiology.
 # This never signs/publishes a Garmin beta and never modifies production branch.
 on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/fusion-autonomous-v5.yml']
   schedule:
     - cron: '17 7,19 * * *'
   workflow_dispatch:
