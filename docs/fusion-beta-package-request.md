@@ -88,3 +88,14 @@ Visual re-audit of signed-pending source e6b6637d showed ratio 0.26 was shifted 
 ## 2026-11-05 — Visual V4 approved-mockup fidelity fix, exact signed beta
 
 User reported that V3 real-device display did not match approved concept images. The private branch now implements the actual concept-style rounded status pill, three metric cards, wide recovery arc + score capsule, training load-zone bar, real seven-day training chart/delta, three explanation cards, and compact footer. No fabricated stress, sleep, Body Battery, HRV trends or optimistic statuses. Passed six-page synthetic Garmin simulator screenshots in public workflow 42016581355; re-run full secure source/Android/Garmin checks, export using SAME persistent signing key and unchanged UUID, and upload **only** to PRIVATE GitHub Release. Do NOT auto-publish to Garmin Connect IQ public store. Existing Android Companion remains correct; no mobile APK install needed.
+
+## 2026-11-06 — Signed V5 visual alignment beta, unchanged stable Garmin identity
+
+Explicit owner request in ChatGPT: package the latest Fusion Training Status **V5** as a signed Garmin `.iq` after the successful autonomous audit. Source is pinned to private commit `6baeadf3d187c979910cfbd88fc14b1249161c54` in branch `ui/v5-device-alignment-20261106`; do **not** package from the older `performance/master-audit` branch.
+
+Pre-release audit evidence from public runner:
+- Engineering + source + Android + Garmin PASS: https://github.com/hectorPascualC/fusion-training-status-ci/actions/runs/42223446426
+- All six native Garmin simulator screenshots + automated pixel smoke PASS: https://github.com/hectorPascualC/fusion-training-status-ci/actions/runs/42223467159
+- Autonomous controller PASS: https://github.com/hectorPascualC/fusion-training-status-ci/actions/runs/42223421100
+
+Run the whole signed private packaging pipeline and verify exact private source SHA, `fusion_auto_repair.py` contract, Android checks, Garmin SDK 9.2.0 compiler, encrypted stable signing-key restoration and **unchanged** V2 UUID `f2107e87-abe2-5b29-845a-050d6a3142d9`. Upload the finished `.iq` only to a PRIVATE GitHub prerelease named after the exact source commit. Include SHA-256 and bytes in final audit. No public Connect IQ publication and no automatic installation on the owner's watch. Real-device fit, visual comparison to original concept and approval remain a manual final stage.
