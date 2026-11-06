@@ -1,4 +1,5 @@
 name: Fusion V5 autonomous audit and bounded repair
+# 2026-11-06 mandatory owner-approved design comparison stage; fail closed.
 
 # Runs independently of ChatGPT. Public logs contain no private code or physiology.
 # This never signs/publishes a Garmin beta and never modifies production branch.
