@@ -1,0 +1,68 @@
+name: Fusion V5 autonomous audit and bounded repair
+
+# Runs independently of ChatGPT. Public logs contain no private code or physiology.
+# This never signs/publishes a Garmin beta and never modifies production branch.
+on:
+  schedule:
+    - cron: '17 7,19 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: fusion-v5-autonomous-controller
+  cancel-in-progress: false
+
+jobs:
+  audit-and-repair:
+    if: >-
+      github.repository == 'hectorPascualC/fusion-training-status-ci' &&
+      (github.event_name == 'schedule' || github.actor == 'hectorPascualC')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 115
+    steps:
+      - name: Check out public runner scripts
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Confirm read-only private source access
+        shell: bash
+        env:
+          FUSION_READ_TOKEN: ${{ secrets.FUSION_PRIVATE_READ_TOKEN }}
+        run: |
+          test -n "$FUSION_READ_TOKEN" || {
+            echo 'BLOCKED: FUSION_PRIVATE_READ_TOKEN is missing'
+            exit 1
+          }
+      - name: Fetch V5 private feature branch without persisting credentials
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: hectorPascualC/fusion-training-status
+          ref: ui/v5-device-alignment-20261106
+          path: private
+          token: ${{ secrets.FUSION_PRIVATE_READ_TOKEN }}
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Detect and repair known visual regressions, then audit source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 private/scripts/fusion_auto_repair.py --apply --report /tmp/fusion-auto-repair.json
+          cd private
+          python3 scripts/fusion_auto_repair.py
+          python3 scripts/validate_performance_audit.py
+          bash scripts/validate_repo.sh
+          python3 scripts/scan_repo_secrets.py
+          git diff --check
+      - name: Persist only verified allowlisted feature-branch fixes
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.FUSION_PRIVATE_AUTOFIX_TOKEN || secrets.FUSION_PRIVATE_RELEASE_TOKEN }}
+        run: python3 scripts/fusion_commit_layout.py private
+      - name: Repeat Garmin, Android and real six-page simulator checks
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/fusion_repair_cycle.py
