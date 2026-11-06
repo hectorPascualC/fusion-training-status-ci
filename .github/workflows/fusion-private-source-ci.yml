@@ -1,4 +1,5 @@
-name: Fusion engineering (private ephemeral checkout)# 2026-11-05 V4 second-pass pixel fixes: audit real-data rendering and security.
+name: Fusion engineering (private ephemeral checkout)
+# 2026-11-05 V4 second-pass pixel fixes: audit real-data rendering and security.
 # 2026-11-05 Fusion V4 mockup-fidelity full source/Android/Garmin regression gate.
 # 2026-11-05 V3 real renderer integration: public engineering CI acceptance gate.
 
