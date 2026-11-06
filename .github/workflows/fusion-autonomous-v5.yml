@@ -55,6 +55,13 @@ jobs:
           set -euo pipefail
           python3 private/scripts/fusion_design_fidelity_gate.py
           echo "PHASE 1 approved sketch baseline: PASS" >> "$GITHUB_STEP_SUMMARY"
+      - name: PHASE 2 — shared font size, alignment and circular safe-area audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd private
+          python3 scripts/validate_poster_layout_v6.py
+          echo "PHASE 2 shared typography and safe layout: PASS" >> "$GITHUB_STEP_SUMMARY"
       - name: Detect and repair known visual regressions, then audit source
         shell: bash
         run: |
