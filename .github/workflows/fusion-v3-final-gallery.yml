@@ -145,6 +145,19 @@ jobs:
               "why" => "Recovery is moderate; maintain training",
               "whyDetail" => "Recovery 56/100 • Ratio 0.26"
           };"""
+          # Only the mockup-matching visual fixture for page 0 uses
+          # seven positive synthetic days. The real app never receives
+          # this substitution. Functional tests still verify genuine
+          # zero/unknown days in the source and Android payload contract.
+          if page == 0:
+              sample = sample.replace(
+                  '"frequency7Day" => 2', '"frequency7Day" => 7')
+              sample = sample.replace(
+                  '"dailyMinutes7" => [0, 0, 0, 20, 0, 60, 0]',
+                  '"dailyMinutes7" => [5, 10, 8, 17, 13, 22, 35]')
+              sample = sample.replace(
+                  '"volumeMinutes7Day" => 80', '"volumeMinutes7Day" => 110')
+              assert 'dailyMinutes7" => [5, 10, 8, 17, 13, 22, 35]' in sample
           assert sample.count('" => ') == 17, "Sample must be 17 real protocol fields"
           # Screenshot-only: no phone is paired in headless simulator.
           # Do not invoke Comm.transmit() 150ms after first render here.
