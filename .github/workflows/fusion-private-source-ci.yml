@@ -1,4 +1,5 @@
 name: Fusion engineering (private ephemeral checkout)
+# 2026-11-06 visual V5 finishing audit against a292fee43f35.
 # V5 final spacing retest private source 61bcfff86d88 2026-11-06.
 # V5 validate regression rerun after caption token fix, private commit 80a683d6.
 # 2026-11-06 V5 round-display retest: private source 2fe58d979fcf.
