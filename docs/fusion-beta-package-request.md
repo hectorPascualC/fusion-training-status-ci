@@ -99,3 +99,13 @@ Pre-release audit evidence from public runner:
 - Autonomous controller PASS: https://github.com/hectorPascualC/fusion-training-status-ci/actions/runs/42223421100
 
 Run the whole signed private packaging pipeline and verify exact private source SHA, `fusion_auto_repair.py` contract, Android checks, Garmin SDK 9.2.0 compiler, encrypted stable signing-key restoration and **unchanged** V2 UUID `f2107e87-abe2-5b29-845a-050d6a3142d9`. Upload the finished `.iq` only to a PRIVATE GitHub prerelease named after the exact source commit. Include SHA-256 and bytes in final audit. No public Connect IQ publication and no automatic installation on the owner's watch. Real-device fit, visual comparison to original concept and approval remain a manual final stage.
+
+## 2026-11-07 — Fusion Training Status 03: beta V5 final de proves
+
+- Autorització: l'usuari ha demanat explícitament generar el nou fitxer .iq per provar les sis pantalles corregides en el Garmin físic.
+- Font **immutable**: repositori privat hectorPascualC/fusion-training-status, branca ui/v5-device-alignment-20261106, commit 4e214f3f0324864a425bd8dac4f7e6e18f53aed6.
+- Validació de disseny: 6/6 PASS al simulador Connect IQ 454 px: https://github.com/hectorPascualC/fusion-training-status-ci/actions/runs/42372235038
+- Validació d'enginyeria + Android: PASS: https://github.com/hectorPascualC/fusion-training-status-ci/actions/runs/42372230638
+- Empaquetar una nova beta `.iq` amb el **mateix UUID de beta V2** i el **mateix signant privat persistent**, i l'APK Android compatible.
+- Condicions: binaris únicament en una release *privada* de GitHub; no publicar en cap botiga pública, no actualitzar `main` del codi privat, no instal·lar res al rellotge, no publicar credencials ni mètriques personals.
+- La validació física i la comparació exacta amb els esbossos romanen pendents. Si qualsevol pas falla, fallar de manera segura sense fabricar cap enllaç de descàrrega.
