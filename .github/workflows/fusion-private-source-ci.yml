@@ -1,4 +1,5 @@
 name: Fusion engineering (private ephemeral checkout)
+# 2026-11-07 FUSION03 WHY 33px measured line-gap, narrow third row, circle-safe pixel bboxes.
 # 2026-11-07 FUSION03 WHY second pixel-confirmed 30px line-gap, 0.699h, strict 3-line test.
 # 2026-11-07 FUSION03 WHY measured text bands, icon rows and 3-line clearance at private 513b712a.
 # 2026-11-07 FUSION03 Trends real 454px title/subtitle/chart gate at private revision 726ddbe9.
