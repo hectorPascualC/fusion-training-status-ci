@@ -1,4 +1,5 @@
 name: Fusion V5 six-page simulator acceptance
+# 2026-11-07 FUSION03 WHY measured text bands, icon rows and 3-line clearance at private 513b712a.
 # 2026-11-07 FUSION03 Trends real 454px title/subtitle/chart gate at private revision 726ddbe9.
 # 2026-11-07 FUSION03 validation at private UI 6d14c0d: responsive Training values, full labels, disjoint strict geometry.
 # V5 final spacing retest private source 61bcfff86d88 2026-11-06.
