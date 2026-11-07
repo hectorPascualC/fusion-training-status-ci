@@ -1,4 +1,5 @@
 name: Fusion V5 autonomous audit and bounded repair
+# 2026-11-07 retest original-design region acceptance after fixing escaped Python newline in legacy regression guard.
 # 2026-11-07 retry corrected legacy 6-dot test guard after poster 3-group active navigation source audit.
 # 2026-11-07 V6 poster-geometry cycle: native 454px crop, 11 strict Overview regions, font-size hierarchy and 3-dot layout.
 # 2026-11-06 V6 Overview third evidence-gated iteration: full-height status and true mockup cyan typography.
